@@ -1,0 +1,48 @@
+site_name: Framewise Meet Client
+site_url: https://docs.framewise.ai/docs
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/git-alt
+    edit: material/pencil 
+    view: material/eye
+  features:
+    - content.action.view
+    - content.action.edit
+
+repo_url: https://github.com/Framewise-AI/framewise_meet_client
+repo_name: framewise-meet
+edit_uri: edit/main/docs/
+
+python:
+  install:
+    - ..  # Install the root package for documentation
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+      - scripts/gen_ref_pages.py
+  - git-revision-date-localized:
+      enable_creation_date: true
+  - git-committers:
+      repository: Framewise-AI/framewise_meet_client
+      branch: main
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [..]  # Look for Python modules one directory up from docs/
+          import:
+            - https://docs.python.org/3/objects.inv
+          options:
+            show_source: true
+            show_root_heading: true
+            heading_level: 2
+            members_order: source
+  - section-index
+
+nav:
+  - Home: index.md
+  - API Reference: reference/
