@@ -49,6 +49,7 @@ class MCQQuestionResponseData(BaseModel):
     selectedOption: str = Field(..., description="The selected option text")
     selectedIndex: int = Field(..., description="The selected option index (0-based)")
     options: Optional[List[str]] = Field(None, description="List of answer options")
+    
 
 class CustomUIElementData(BaseModel):
     """Data for a custom UI element response."""

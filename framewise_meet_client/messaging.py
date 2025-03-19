@@ -85,8 +85,8 @@ class MessageSender:
         else:
             asyncio.create_task(self._send_message(message))
     
-    def send_mcq_question(self, question_id: str, question: str, options: List[str], 
-                         loop: asyncio.AbstractEventLoop = None) -> None:
+    def send_mcq_question(self, question_id: str, question: str, options: List[str],
+                         loop: asyncio.AbstractEventLoop = None, image_path: Optional[str] = None) -> None:
         """Send an MCQ question as a custom UI element.
         
         Args:
@@ -94,12 +94,17 @@ class MessageSender:
             question: The question text
             options: List of answer options
             loop: Event loop to use for coroutine execution (uses current loop if None)
+            image_path: Optional path to an image to display with the question
         """
         data = {
             "id": question_id,
             "question": question,
             "options": options
         }
+        
+        if image_path:
+            data["image_path"] = image_path
+            
         self.send_custom_ui_element("mcq_question", data, loop)
     
     def send_notification(self, message: str, level: str = "info", duration: int = 8000,
