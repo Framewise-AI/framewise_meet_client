@@ -48,7 +48,7 @@ class App:
         "join": JOIN_EVENT,
         "exit": EXIT_EVENT,
         "transcript": TRANSCRIPT_EVENT,
-        "custom_ui_element_response": CUSTOM_UI_EVENT,
+        "custom_ui_response": CUSTOM_UI_EVENT,
         "custom_ui": CUSTOM_UI_EVENT,
         "invoke": INVOKE_EVENT,
         "connection_rejected": CONNECTION_REJECTED_EVENT
@@ -83,7 +83,7 @@ class App:
         self.running = False
         self.loop = None
         self._main_task = None
-        
+
 
     def join_meeting(self,meeting_id):
         self.meeting_id = meeting_id
@@ -130,30 +130,23 @@ class App:
             return register_event_handler(self, resolved_event_type, func)
         
         return decorator
-    
-    def on_transcript(self, func: Callable[[TranscriptMessage], Any] = None):
-        """Register a handler for transcript events."""
-        return self._on_event(EventType.TRANSCRIPT, func, "on_transcript")
-    
-    def on_join(self, func: Callable[[JoinMessage], Any] = None):
-        """Register a handler for user join events."""
-        return self._on_event(EventType.JOIN, func, "on_join")
-    
-    def on_exit(self, func: Callable[[ExitMessage], Any] = None):
-        """Register a handler for user exit events."""
-        return self._on_event(EventType.EXIT, func, "on_exit")
-    
-    def on_custom_ui_response(self, func: Callable[[CustomUIElementMessage], Any] = None):
-        """Register a handler for custom UI element response events."""
-        return self._on_event(EventType.CUSTOM_UI_RESPONSE, func, "on_custom_ui_response")
-    
-    def on_invoke(self, func: Callable[[TranscriptMessage], Any] = None):
-        """Register a handler for invoke events (triggered by final transcripts).
+
+    def __getattr__(self, name):
+        """Dynamically create event handler methods.
         
-        Args:
-            func: Function that takes a TranscriptMessage and processes the event
+        This allows methods like on_transcript, on_join, etc. to be generated dynamically.
         """
-        return self._on_event(EventType.INVOKE, func, "on_invoke")
+        if name.startswith('on_'):
+            event_name = name[3:]
+            
+            if event_name in self._event_aliases:
+                event_type_value = self._event_aliases[event_name]
+                
+                def handler_method(func=None):
+                    return self._on_event(event_type_value, func, name)
+                return handler_method
+                
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
     
     def _on_event(self, event_type: Union[str, EventType], func: Callable[[BaseMessage], Any] = None, shorthand_name: str = None):
         """Helper function to reduce code duplication in event registration."""

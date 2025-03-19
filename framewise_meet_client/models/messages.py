@@ -119,6 +119,7 @@ class MCQSelectionContent(BaseModel):
     selectedIndex: int = Field(..., description="The selected option index (0-based)")
     question: str = Field(...,description="the question name")
     id: Optional[str] = Field(None, description="ID of the related question")
+    image_path: Optional[str] = Field(None,description="imae_path")
 
 
 class MCQSelectionMessage(BaseMessage):
