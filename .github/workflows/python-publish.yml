@@ -31,6 +31,8 @@ jobs:
           # NOTE: put your own distribution build steps here.
           pip install uv
           mkdir dist
+          uv tree
+          ls -a
           uv run build
       - name: Debug Dist Directory
         run: ls -l dist/
