@@ -7,7 +7,7 @@ A Python client library for building interactive applications with the Framewise
 Install the package using pip:
 
 ```bash
-pip install -r requirements.txt
+pip install framewise-meet-client
 ```
 
 ## Getting Started
@@ -15,8 +15,8 @@ pip install -r requirements.txt
 ### Basic Usage
 
 ```python
-from src.app import App
-from src.models.messages import TranscriptMessage
+from framewise_meet_client import App
+from framewise_meet_client.models.messages import TranscriptMessage
 
 # Create an app instance with your API key
 app = App(api_key="your_api_key_here")
