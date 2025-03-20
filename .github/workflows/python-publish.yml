@@ -31,14 +31,13 @@ jobs:
       - name: Build release distributions
         run: |
           uv build
-          ls -l build
           ls -a
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:
           name: release-dists
-          path: dist/
+          path: ~/dist/
 
   pypi-publish:
     runs-on: ubuntu-latest
@@ -61,4 +60,4 @@ jobs:
       - name: Publish release distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/
+          packages-dir: ~/dist/
