@@ -32,6 +32,7 @@ jobs:
           pip install uv
           mkdir dist
           uv tree
+          python -m build
           ls -a
           uv run build
       - name: Debug Dist Directory
