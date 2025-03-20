@@ -30,7 +30,6 @@ jobs:
         run: |
           # NOTE: put your own distribution build steps here.
           pip install uv
-          uv sync
           mkdir dist
           uv run build
       - name: Debug Dist Directory
