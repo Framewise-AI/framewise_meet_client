@@ -30,7 +30,7 @@ jobs:
 
       - name: Build release distributions
         run: |
-          uv pip build
+          uv build
           ls -l build
           ls -a
 
