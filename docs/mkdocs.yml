@@ -46,3 +46,5 @@ plugins:
 nav:
   - Home: index.md
   - API Reference: reference/
+  - Guides:
+    - Adding Custom UI Components: adding_custom_ui_components.md
