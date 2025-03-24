@@ -30,7 +30,7 @@ jobs:
           uv pip install --system --lock uv.lock
 
       - name: Build MkDocs Site
-        run: mkdocs build --strict
+        run: uv run mkdocs build --strict
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
