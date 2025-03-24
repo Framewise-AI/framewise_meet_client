@@ -28,7 +28,7 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           uv venv
           uv pip install -e .
-          uv pip install --lock uv.lock
+          uv sync
 
       - name: Build MkDocs Site
         run: mkdocs build --strict
