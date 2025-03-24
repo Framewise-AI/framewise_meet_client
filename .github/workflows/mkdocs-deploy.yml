@@ -9,18 +9,16 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
-  # Build job
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed for pushing to gh-pages branch
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper gh-deploy
 
       - name: Install uv and dependencies
         run: |
@@ -30,34 +28,7 @@ jobs:
           uv pip install -e .
           uv sync
 
-      - name: Build MkDocs Site
+      - name: Deploy MkDocs to GitHub Pages
         run: |
           cd docs
-          uv run mkdocs build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ./docs/site
-
-  # Deploy job
-  deploy:
-    # Add a dependency to the build job
-    needs: build
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-
-    # Deploy to the github-pages environment
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    # Specify runner + deployment step
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          uv run mkdocs gh-deploy --force
