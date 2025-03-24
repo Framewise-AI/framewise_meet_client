@@ -229,7 +229,7 @@ def handle_poll(message: CustomUIElementMessage):
 @app.on_custom_ui_response()
 def handle_any_ui(message: CustomUIElementMessage):
     ui_type = message.content.type
-    if ui_type not in ["mcq_question", "info_card", "poll"]:
+    if (ui_type not in ["mcq_question"]):
         # Handle unknown UI types
         pass
 ```
@@ -261,3 +261,11 @@ Configure logging level when running the app:
 ```python
 app.run(log_level="DEBUG")  # Other options: INFO, WARNING, ERROR, CRITICAL
 ```
+
+## Documentation
+
+For complete documentation, visit [https://framewise-ai.github.io/framewise_meet_client/](https://framewise-ai.github.io/framewise_meet_client/)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
