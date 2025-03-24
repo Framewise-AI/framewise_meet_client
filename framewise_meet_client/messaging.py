@@ -22,7 +22,7 @@ from .errors import ConnectionError
 logger = logging.getLogger(__name__)
 
 # Type variable for BaseResponse subclasses
-T = TypeVar('T', bound=BaseResponse)
+T = TypeVar("T", bound=BaseResponse)
 
 
 class MessageSender:
@@ -34,21 +34,19 @@ class MessageSender:
         Args:
             connection: WebSocketConnection instance
         """
-        self.connection = connection
-    
+        self.connection = connections
+
     def _prepare_message(self, message_class: Type[T], **kwargs) -> T:
         """Prepare a message with standard fields.
-        
+
         Args:
             message_class: The message class to instantiate
             **kwargs: Additional fields for the message
-            
+
         Returns:
             An instance of the message class
         """
-        return message_class(
-            **kwargs
-        )
+        return message_class(**kwargs)
 
     async def _send_message(self, message: Any) -> None:
         """Send a message over the WebSocket connection.
@@ -98,10 +96,31 @@ class MessageSender:
     ) -> None:
         """Send a custom UI element to the server.
 
+        This is a generic method for sending custom UI elements. For specific UI elements,
+        consider creating dedicated helper methods for better type safety and easier usage.
+
         Args:
-            ui_type: Type of UI element
+            ui_type: Type of UI element - must be supported by the Framewise Meet client
             data: Data specific to the UI element
             loop: Event loop to use for coroutine execution (uses current loop if None)
+
+        Examples:
+            ```python
+            # Send a custom chart component
+            sender.send_custom_ui_element(
+                ui_type="chart",
+                data={
+                    "chart_type": "bar",
+                    "title": "Meeting Participation",
+                    "data": [10, 20, 35, 15],
+                    "labels": ["Week 1", "Week 2", "Week 3", "Week 4"]
+                }
+            )
+            ```
+
+        Notes:
+            For creating new custom UI element types, refer to the documentation on
+            adding custom UI components.
         """
         # Create a generic custom UI element
         custom_element = {"type": ui_type, "data": data}
@@ -162,13 +181,15 @@ class MessageSender:
         notification_element = NotificationElement(
             type="notification_element", data=notification_data
         )
-        msg = self._prepare_message(CustomUIElementMessage, content=notification_element)
+        msg = self._prepare_message(
+            CustomUIElementMessage, content=notification_element
+        )
 
         if loop:
             asyncio.run_coroutine_threadsafe(self._send_message(msg), loop)
         else:
             asyncio.create_task(self._send_message(msg))
-            
+
     def send_error(
         self,
         error_message: str,
@@ -176,14 +197,16 @@ class MessageSender:
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         """Send an error message to the server.
-        
+
         Args:
             error_message: The error message
             error_code: Optional error code
             loop: Event loop to run the coroutine in
         """
-        message = self._prepare_message(ErrorResponse, error=error_message, error_code=error_code)
-        
+        message = self._prepare_message(
+            ErrorResponse, error=error_message, error_code=error_code
+        )
+
         if loop:
             asyncio.run_coroutine_threadsafe(self._send_message(message), loop)
         else:
