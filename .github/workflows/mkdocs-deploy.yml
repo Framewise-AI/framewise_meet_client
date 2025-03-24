@@ -31,7 +31,9 @@ jobs:
           uv sync
 
       - name: Build MkDocs Site
-        run: uv run mkdocs build --strict
+        run: |
+          cd docs
+          uv run mkdocs build --strict 
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
