@@ -4,12 +4,17 @@ import logging
 from typing import Optional
 from examples.utils import prepare_basis_llm_v2
 from framewise_meet_client.app import App
-from framewise_meet_client.models.messages import TranscriptMessage, MCQSelectionMessage, JoinMessage, ExitMessage, CustomUIElementMessage
+from framewise_meet_client.models.messages import (
+    TranscriptMessage,
+    MCQSelectionMessage,
+    JoinMessage,
+    ExitMessage,
+    CustomUIElementMessage,
+)
 
 # Load environment variables from .env file
 logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -26,22 +31,20 @@ async def get_openai_response(text: Optional[str] = "") -> dict:
         global llm
         global session_id
         response = llm.invoke(
-            {"input": text},
-            config={"configurable": {"session_id": session_id}})
+            {"input": text}, config={"configurable": {"session_id": session_id}}
+        )
         mcq = AGENT.mcq_question_tracker()
-        if mcq == 'None':
+        if mcq == "None":
             return {
                 "response": response.content,
-                "mcq": {"id": "23860105-0ca1-4563-ab6f-00b73936fcd2",
-                        "question": "How would you like to proceed?",
-                        "options": ["Continue", "Start Over", "Try Something Else", "Exit"]
-                        }
+                "mcq": {
+                    "id": "23860105-0ca1-4563-ab6f-00b73936fcd2",
+                    "question": "How would you like to proceed?",
+                    "options": ["Continue", "Start Over", "Try Something Else", "Exit"],
+                },
             }
         else:
-            return {
-                "response": response.content,
-                "mcq": mcq
-            }
+            return {"response": response.content, "mcq": mcq}
 
     except Exception as e:
         error_msg = f"Error getting response: {str(e)}"
@@ -65,17 +68,14 @@ async def process_final_transcript(message: TranscriptMessage):
         logger.info(f"Processing final transcript: {transcript}")
         response_data = await get_openai_response(transcript)
 
-        app.send_generated_text(
-            response_data["response"],
-            is_generation_end=True
-        )
+        app.send_generated_text(response_data["response"], is_generation_end=True)
 
-        if 'mcq' in response_data and response_data['mcq']:
-            mcq_data = response_data['mcq']
+        if "mcq" in response_data and response_data["mcq"]:
+            mcq_data = response_data["mcq"]
             app.send_mcq_question(
                 question_id=mcq_data["id"],
                 question=mcq_data["question"],
-                options=mcq_data["options"]
+                options=mcq_data["options"],
             )
 
 
@@ -87,7 +87,8 @@ def on_mcq_question(message: CustomUIElementMessage):
     question_id = mcq_data.id
 
     logger.info(
-        f"MCQ selection: '{selected_option}' (index: {selected_index}) for question {question_id}")
+        f"MCQ selection: '{selected_option}' (index: {selected_index}) for question {question_id}"
+    )
 
 
 @app.on_custom_ui_response()
@@ -100,7 +101,8 @@ def on_mcq_response(message: CustomUIElementMessage):
         question_id = mcq_data.id
 
         logger.info(
-            f"MCQ response: Selected '{selected_option}' (index: {selected_index}) for question {question_id}")
+            f"MCQ response: Selected '{selected_option}' (index: {selected_index}) for question {question_id}"
+        )
 
 
 @app.on("join")
@@ -108,11 +110,7 @@ def on_user_join(message: JoinMessage):
     meeting_id = message.content.user_joined.meeting_id
     logger.info(f"User joined meeting: {meeting_id}")
 
-    app.send_notification(
-        message="User joined",
-        level="info",
-        duration=8000
-    )
+    app.send_notification(message="User joined", level="info", duration=8000)
 
 
 @app.on_exit()
@@ -123,7 +121,7 @@ def on_user_exit(message: ExitMessage):
 
 @app.on_connection_rejected()
 def on_connection_rejected(message):
-    reason = getattr(message, 'reason', 'Unknown reason')
+    reason = getattr(message, "reason", "Unknown reason")
     logger.error(f"Connection rejected: {reason}")
 
 

@@ -21,14 +21,22 @@ EVENT_HANDLERS = {
     EXIT_EVENT: ExitHandler,
     CUSTOM_UI_EVENT: CustomUIHandler,
     INVOKE_EVENT: InvokeHandler,
-    CONNECTION_REJECTED_EVENT: ConnectionRejectedHandler
+    CONNECTION_REJECTED_EVENT: ConnectionRejectedHandler,
 }
 
 __all__ = [
-    'EventHandler', 'register_event_handler',
-    'TranscriptHandler', 'JoinHandler', 'ExitHandler', 
-    'CustomUIHandler', 'InvokeHandler',
-    'TRANSCRIPT_EVENT', 'JOIN_EVENT', 'EXIT_EVENT',
-    'MCQ_SELECTION_EVENT', 'CUSTOM_UI_EVENT', 'INVOKE_EVENT',
-    'EVENT_HANDLERS'
+    "EventHandler",
+    "register_event_handler",
+    "TranscriptHandler",
+    "JoinHandler",
+    "ExitHandler",
+    "CustomUIHandler",
+    "InvokeHandler",
+    "TRANSCRIPT_EVENT",
+    "JOIN_EVENT",
+    "EXIT_EVENT",
+    "MCQ_SELECTION_EVENT",
+    "CUSTOM_UI_EVENT",
+    "INVOKE_EVENT",
+    "EVENT_HANDLERS",
 ]
