@@ -26,9 +26,9 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           export PATH="$HOME/.cargo/bin:$PATH"
-          uv pip install --system mkdocs mkdocs-material
-          uv pip install --system -e .
-          uv pip install --system --lock uv.lock
+          uv venv
+          uv pip install -e .
+          uv pip install --lock uv.lock
 
       - name: Build MkDocs Site
         run: mkdocs build --strict
