@@ -35,7 +35,7 @@ jobs:
           uv run mkdocs build
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v1
         with:
           path: ./docs/site
 
