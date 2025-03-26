@@ -8,25 +8,23 @@
       
       
       
-        <link rel="canonical" href="https://docs.framewise.ai/docs/reference/errors/">
+        <link rel="canonical" href="https://docs.framewise.ai/docs/adding_custom_ui_components/">
       
       
-        <link rel="prev" href="../connection/">
+        <link rel="prev" href="../reference/runner/">
       
       
-        <link rel="next" href="../event_handler/">
       
-      
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
     
     
       
-        <title>errors - Framewise Meet Client</title>
+        <title>Adding Custom UI Components - Framewise Meet Client</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
       
       
 
@@ -45,9 +43,9 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -66,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#framewise_meet_client.errors" class="md-skip">
+        <a href="#adding-custom-ui-components-to-framewise-meet-client" class="md-skip">
           Skip to content
         </a>
       
@@ -82,7 +80,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Framewise Meet Client" class="md-header__button md-logo" aria-label="Framewise Meet Client" data-md-component="logo">
+    <a href=".." title="Framewise Meet Client" class="md-header__button md-logo" aria-label="Framewise Meet Client" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -102,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              errors
+              Adding Custom UI Components
             
           </span>
         </div>
@@ -189,7 +187,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Framewise Meet Client" class="md-nav__button md-logo" aria-label="Framewise Meet Client" data-md-component="logo">
+    <a href=".." title="Framewise Meet Client" class="md-nav__button md-logo" aria-label="Framewise Meet Client" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -219,7 +217,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -237,19 +235,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -264,7 +260,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             API Reference
@@ -278,7 +274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../app/" class="md-nav__link">
+      <a href="../reference/app/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -300,7 +296,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../auth/" class="md-nav__link">
+      <a href="../reference/auth/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -322,7 +318,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection/" class="md-nav__link">
+      <a href="../reference/connection/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -341,29 +337,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    errors
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../reference/errors/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -373,93 +350,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      errors
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="errors">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.AppError" class="md-nav__link">
-    <span class="md-ellipsis">
-      AppError
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.AppNotRunningError" class="md-nav__link">
-    <span class="md-ellipsis">
-      AppNotRunningError
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.ConnectionError" class="md-nav__link">
-    <span class="md-ellipsis">
-      ConnectionError
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.HandlerError" class="md-nav__link">
-    <span class="md-ellipsis">
-      HandlerError
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.MessageError" class="md-nav__link">
-    <span class="md-ellipsis">
-      MessageError
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.AuthenticationError" class="md-nav__link">
-    <span class="md-ellipsis">
-      AuthenticationError
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -472,7 +362,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../event_handler/" class="md-nav__link">
+      <a href="../reference/event_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -506,7 +396,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../events/" class="md-nav__link ">
+            <a href="../reference/events/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -538,7 +428,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/base_handler/" class="md-nav__link">
+      <a href="../reference/events/base_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -560,7 +450,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/connection_rejected_handler/" class="md-nav__link">
+      <a href="../reference/events/connection_rejected_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -582,7 +472,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/custom_ui_handler/" class="md-nav__link">
+      <a href="../reference/events/custom_ui_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -604,7 +494,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/exit_handler/" class="md-nav__link">
+      <a href="../reference/events/exit_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -626,7 +516,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/invoke_handler/" class="md-nav__link">
+      <a href="../reference/events/invoke_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -648,7 +538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/join_handler/" class="md-nav__link">
+      <a href="../reference/events/join_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -670,7 +560,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/transcript_handler/" class="md-nav__link">
+      <a href="../reference/events/transcript_handler/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -700,7 +590,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../logging_config/" class="md-nav__link">
+      <a href="../reference/logging_config/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -722,7 +612,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../messaging/" class="md-nav__link">
+      <a href="../reference/messaging/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -756,7 +646,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../models/" class="md-nav__link ">
+            <a href="../reference/models/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -788,7 +678,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../models/inbound/" class="md-nav__link">
+      <a href="../reference/models/inbound/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -810,7 +700,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../models/outbound/" class="md-nav__link">
+      <a href="../reference/models/outbound/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -840,7 +730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../runner/" class="md-nav__link">
+      <a href="../reference/runner/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -866,17 +756,19 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -891,7 +783,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Guides
@@ -902,10 +794,31 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../adding_custom_ui_components/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Adding Custom UI Components
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -915,6 +828,164 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-custom-ui-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Custom UI Component
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a Custom UI Component">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-define-your-ui-component-data-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Define Your UI Component Data Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-add-a-helper-method-in-messagesender" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Add a Helper Method in MessageSender
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-create-an-event-handler-for-responses-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Create an Event Handler for Responses (Optional)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-register-your-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Register Your Handler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-creating-a-simple-alert-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example: Creating a Simple Alert Component
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example: Creating a Simple Alert Component">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-define-the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Define the Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-add-helper-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Add Helper Method
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-using-the-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Using the Component
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations-and-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations and Considerations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Components
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -944,6 +1015,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -952,64 +1025,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
-      errors
+      Overview
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="errors">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-custom-ui-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Custom UI Component
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a Custom UI Component">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.AppError" class="md-nav__link">
+  <a href="#step-1-define-your-ui-component-data-structure" class="md-nav__link">
     <span class="md-ellipsis">
-      AppError
+      Step 1: Define Your UI Component Data Structure
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.AppNotRunningError" class="md-nav__link">
+  <a href="#step-2-add-a-helper-method-in-messagesender" class="md-nav__link">
     <span class="md-ellipsis">
-      AppNotRunningError
+      Step 2: Add a Helper Method in MessageSender
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.ConnectionError" class="md-nav__link">
+  <a href="#step-3-create-an-event-handler-for-responses-optional" class="md-nav__link">
     <span class="md-ellipsis">
-      ConnectionError
+      Step 3: Create an Event Handler for Responses (Optional)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.HandlerError" class="md-nav__link">
+  <a href="#step-4-register-your-handler" class="md-nav__link">
     <span class="md-ellipsis">
-      HandlerError
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.MessageError" class="md-nav__link">
-    <span class="md-ellipsis">
-      MessageError
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#framewise_meet_client.errors.AuthenticationError" class="md-nav__link">
-    <span class="md-ellipsis">
-      AuthenticationError
+      Step 4: Register Your Handler
     </span>
   </a>
   
@@ -1017,6 +1090,75 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-creating-a-simple-alert-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example: Creating a Simple Alert Component
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example: Creating a Simple Alert Component">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-define-the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Define the Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-add-helper-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Add Helper Method
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-using-the-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Using the Component
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations-and-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations and Considerations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Components
+    </span>
+  </a>
   
 </li>
       
@@ -1036,7 +1178,7 @@
 
 
   
-    <a href="https://github.com/Framewise-AI/framewise_meet_client/edit/main/docs/framewise_meet_client/errors.py" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/Framewise-AI/framewise_meet_client/edit/main/docs/adding_custom_ui_components.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"/></svg>
     </a>
@@ -1045,292 +1187,185 @@
     
       
     
-    <a href="https://github.com/Framewise-AI/framewise_meet_client/raw/main/docs/framewise_meet_client/errors.py" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/Framewise-AI/framewise_meet_client/raw/main/docs/adding_custom_ui_components.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5"/></svg>
     </a>
   
 
 
-  <h1>errors</h1>
-
-<div class="doc doc-object doc-module">
-
-
-
-<h2 id="framewise_meet_client.errors" class="doc doc-heading">
-            <code>framewise_meet_client.errors</code>
-
-
-</h2>
-
-    <div class="doc doc-contents first">
-
-
-
-
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-class">
-
-
-
-<h3 id="framewise_meet_client.errors.AppError" class="doc doc-heading">
-            <code>AppError</code>
-
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-            <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#Exception">Exception</a></code></p>
-
-
-        <p>Base exception class for application errors.</p>
-
-
-
-
-
-
-
-              <details class="quote">
-                <summary>Source code in <code>framewise_meet_client/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
-<span class="normal">2</span>
-<span class="normal">3</span>
-<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AppError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base exception class for application errors.&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
-              </details>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h3 id="framewise_meet_client.errors.AppNotRunningError" class="doc doc-heading">
-            <code>AppNotRunningError</code>
-
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-            <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="AppError (framewise_meet_client.errors.AppError)" href="#framewise_meet_client.errors.AppError">AppError</a></code></p>
-
-
-        <p>Exception raised when an operation requires the app to be running.</p>
-
-
-
-
-
-
-
-              <details class="quote">
-                <summary>Source code in <code>framewise_meet_client/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 7</span>
-<span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AppNotRunningError</span><span class="p">(</span><span class="n">AppError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised when an operation requires the app to be running.&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
-              </details>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h3 id="framewise_meet_client.errors.ConnectionError" class="doc doc-heading">
-            <code>ConnectionError</code>
-
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-            <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="AppError (framewise_meet_client.errors.AppError)" href="#framewise_meet_client.errors.AppError">AppError</a></code></p>
-
-
-        <p>Exception raised for WebSocket connection errors.</p>
-
-
-
-
-
-
-
-              <details class="quote">
-                <summary>Source code in <code>framewise_meet_client/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span>
-<span class="normal">16</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ConnectionError</span><span class="p">(</span><span class="n">AppError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised for WebSocket connection errors.&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
-              </details>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h3 id="framewise_meet_client.errors.HandlerError" class="doc doc-heading">
-            <code>HandlerError</code>
-
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-            <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="AppError (framewise_meet_client.errors.AppError)" href="#framewise_meet_client.errors.AppError">AppError</a></code></p>
-
-
-        <p>Exception raised for errors in event handlers.</p>
-
-
-
-
-
-
-
-              <details class="quote">
-                <summary>Source code in <code>framewise_meet_client/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">19</span>
-<span class="normal">20</span>
-<span class="normal">21</span>
-<span class="normal">22</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">HandlerError</span><span class="p">(</span><span class="n">AppError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised for errors in event handlers.&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
-              </details>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h3 id="framewise_meet_client.errors.MessageError" class="doc doc-heading">
-            <code>MessageError</code>
-
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-            <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="AppError (framewise_meet_client.errors.AppError)" href="#framewise_meet_client.errors.AppError">AppError</a></code></p>
-
-
-        <p>Exception raised for errors in message processing.</p>
-
-
-
-
-
-
-
-              <details class="quote">
-                <summary>Source code in <code>framewise_meet_client/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MessageError</span><span class="p">(</span><span class="n">AppError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised for errors in message processing.&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
-              </details>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h3 id="framewise_meet_client.errors.AuthenticationError" class="doc doc-heading">
-            <code>AuthenticationError</code>
-
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-            <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="AppError (framewise_meet_client.errors.AppError)" href="#framewise_meet_client.errors.AppError">AppError</a></code></p>
-
-
-        <p>Exception raised for authentication errors.</p>
-
-
-
-
-
-
-
-              <details class="quote">
-                <summary>Source code in <code>framewise_meet_client/errors.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AuthenticationError</span><span class="p">(</span><span class="n">AppError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised for authentication errors.&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
-              </details>
-
-    </div>
-
-</div>
-
-
-
-
-  </div>
-
-    </div>
-
-</div>
+<h1 id="adding-custom-ui-components-to-framewise-meet-client">Adding Custom UI Components to Framewise Meet Client</h1>
+<p>This guide explains how to create and add custom UI components that can be sent to the Framewise Meet service.</p>
+<h2 id="overview">Overview</h2>
+<p>The Framewise Meet Client allows you to send custom UI elements to be displayed in the meeting interface. This is done through the <code>MessageSender.send_custom_ui_element()</code> method, which can be customized to create various UI components.</p>
+<h2 id="basic-usage">Basic Usage</h2>
+<p>At its core, sending a custom UI element involves:</p>
+<ol>
+<li>Creating a data structure for your UI component</li>
+<li>Sending it using the <code>send_custom_ui_element</code> method</li>
+<li>Handling any responses or interactions via event handlers</li>
+</ol>
+<h2 id="creating-a-custom-ui-component">Creating a Custom UI Component</h2>
+<h3 id="step-1-define-your-ui-component-data-structure">Step 1: Define Your UI Component Data Structure</h3>
+<p>First, define a data structure for your component in a Pydantic model. Add this to the appropriate location in the <code>models/outbound.py</code> file:</p>
+<pre><code class="language-python">from pydantic import BaseModel, Field
+
+class YourCustomElementData(BaseModel):
+    &quot;&quot;&quot;Data structure for your custom UI element.&quot;&quot;&quot;
+    id: str
+    title: str
+    content: str
+    # Add any other fields your component needs
+
+class YourCustomElement(BaseModel):
+    &quot;&quot;&quot;Wrapper for your custom UI element.&quot;&quot;&quot;
+    type: str = &quot;your_custom_element_type&quot;
+    data: YourCustomElementData
+</code></pre>
+<h3 id="step-2-add-a-helper-method-in-messagesender">Step 2: Add a Helper Method in MessageSender</h3>
+<p>Add a convenience method to the <code>MessageSender</code> class in <code>messaging.py</code>:</p>
+<pre><code class="language-python">def send_your_custom_element(
+    self,
+    element_id: str,
+    title: str,
+    content: str,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+) -&gt; None:
+    &quot;&quot;&quot;Send your custom UI element to the server.
+
+    Args:
+        element_id: Unique identifier for this element
+        title: Title to display
+        content: Content to display
+        loop: Event loop to run the coroutine in
+    &quot;&quot;&quot;
+    data = YourCustomElementData(
+        id=element_id,
+        title=title,
+        content=content,
+    )
+    element = YourCustomElement(type=&quot;your_custom_element_type&quot;, data=data)
+    message = self._prepare_message(CustomUIElementMessage, content=element)
+
+    if loop:
+        asyncio.run_coroutine_threadsafe(self._send_message(message), loop)
+    else:
+        asyncio.create_task(self._send_message(message))
+</code></pre>
+<h3 id="step-3-create-an-event-handler-for-responses-optional">Step 3: Create an Event Handler for Responses (Optional)</h3>
+<p>If your UI component generates user interactions that will be sent back from the server, create a handler in the <code>events</code> directory:</p>
+<pre><code class="language-python">from framewise_meet_client.events.base_handler import BaseHandler
+
+class YourCustomUIHandler(BaseHandler):
+    &quot;&quot;&quot;Handles responses from your custom UI element.&quot;&quot;&quot;
+
+    async def handle(self, data: dict) -&gt; None:
+        &quot;&quot;&quot;Process the event data.
+
+        Args:
+            data: Event data from the server
+        &quot;&quot;&quot;
+        # Extract relevant information
+        element_id = data.get(&quot;id&quot;)
+        response = data.get(&quot;response&quot;)
+
+        # Process the response
+        # ...
+
+        # Call the callback if it exists
+        if self.callback:
+            await self.callback(data)
+</code></pre>
+<h3 id="step-4-register-your-handler">Step 4: Register Your Handler</h3>
+<p>Make sure to register your handler with the event dispatcher when you set up your application:</p>
+<pre><code class="language-python">from framewise_meet_client.events.your_custom_ui_handler import YourCustomUIHandler
+
+# In your setup code:
+runner = AppRunner(app)
+runner.event_dispatcher.register(&quot;your_custom_element_response&quot;, YourCustomUIHandler(callback=your_callback_function))
+</code></pre>
+<h2 id="example-creating-a-simple-alert-component">Example: Creating a Simple Alert Component</h2>
+<p>Here's a complete example of creating a simple alert component:</p>
+<h3 id="1-define-the-model">1. Define the Model</h3>
+<pre><code class="language-python">class AlertData(BaseModel):
+    &quot;&quot;&quot;Data for an alert UI element.&quot;&quot;&quot;
+    id: str
+    title: str
+    message: str
+    severity: str = &quot;info&quot;  # info, warning, error, success
+
+class AlertElement(BaseModel):
+    &quot;&quot;&quot;Alert UI element.&quot;&quot;&quot;
+    type: str = &quot;alert&quot;
+    data: AlertData
+</code></pre>
+<h3 id="2-add-helper-method">2. Add Helper Method</h3>
+<pre><code class="language-python">def send_alert(
+    self,
+    alert_id: str,
+    title: str,
+    message: str,
+    severity: str = &quot;info&quot;,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+) -&gt; None:
+    &quot;&quot;&quot;Send an alert UI element to the server.
+
+    Args:
+        alert_id: Unique identifier for this alert
+        title: Alert title
+        message: Alert message
+        severity: Alert severity (info, warning, error, success)
+        loop: Event loop to run the coroutine in
+    &quot;&quot;&quot;
+    alert_data = AlertData(
+        id=alert_id,
+        title=title,
+        message=message,
+        severity=severity,
+    )
+    alert_element = AlertElement(type=&quot;alert&quot;, data=alert_data)
+    message = self._prepare_message(CustomUIElementMessage, content=alert_element)
+
+    if loop:
+        asyncio.run_coroutine_threadsafe(self._send_message(message), loop)
+    else:
+        asyncio.create_task(self._send_message(message))
+</code></pre>
+<h3 id="3-using-the-component">3. Using the Component</h3>
+<pre><code class="language-python"># Create an instance of MessageSender
+message_sender = MessageSender(connection)
+
+# Send an alert
+message_sender.send_alert(
+    alert_id=&quot;unique-alert-id&quot;,
+    title=&quot;Important Notice&quot;,
+    message=&quot;This is an important message for all participants.&quot;,
+    severity=&quot;warning&quot;
+)
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Use Unique IDs</strong>: Always assign unique IDs to your UI elements to track responses.</li>
+<li><strong>Keep Data Structures Simple</strong>: UI elements should have clean, straightforward data models.</li>
+<li><strong>Validate Input</strong>: Ensure your data models include proper validation constraints.</li>
+<li><strong>Handle Errors Gracefully</strong>: Always add error handling in your event handlers.</li>
+<li><strong>Document Your Components</strong>: Clearly document the purpose and structure of each custom component.</li>
+<li><strong>Test Thoroughly</strong>: Verify that your custom components render correctly in the Framewise Meet interface.</li>
+</ol>
+<h2 id="limitations-and-considerations">Limitations and Considerations</h2>
+<ul>
+<li>The appearance of custom UI elements depends on the Framewise Meet client-side implementation.</li>
+<li>Not all UI concepts may be supported by the Framewise Meet rendering engine.</li>
+<li>Complex interactive components may require coordination with the Framewise Meet development team.</li>
+</ul>
+<h2 id="example-components">Example Components</h2>
+<p>The Framewise Meet Client includes several built-in custom UI elements you can use as examples:</p>
+<ul>
+<li>MCQ Questions (<code>send_mcq_question</code>)</li>
+<li>Notifications (<code>send_notification</code>)</li>
+<li>Generated Text (<code>send_generated_text</code>)</li>
+</ul>
+<p>Study these implementations to understand the patterns for creating effective custom UI components.</p>
 
 
 
@@ -1353,7 +1388,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 26, 2025 09:50:34">March 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 26, 2025 09:49:32">March 26, 2025</span>
   </span>
 
     
@@ -1363,7 +1398,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 26, 2025 09:50:34">March 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 24, 2025 06:43:50">March 24, 2025</span>
   </span>
 
     
@@ -1409,10 +1444,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.view", "content.action.edit"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.view", "content.action.edit"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
       
     
   </body>
