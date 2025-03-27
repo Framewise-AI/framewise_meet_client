@@ -3,10 +3,10 @@ import logging
 import json
 import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Optional, TypeVar, Type
+from typing import List, Dict, Any, Optional, TypeVar, Type, Union
+from pydantic import BaseModel
 
 from .models.outbound import (
-    BaseResponse,
     GeneratedTextMessage,
     GeneratedTextContent,
     CustomUIElementMessage,
@@ -14,6 +14,16 @@ from .models.outbound import (
     MCQQuestionData,
     NotificationElement,
     NotificationData,
+    PlacesAutocompleteElement,
+    PlacesAutocompleteData,
+    UploadFileElement,
+    UploadFileData,
+    TextInputElement,
+    TextInputData,
+    ConsentFormElement,
+    ConsentFormData,
+    CalendlyElement,
+    CalendlyData,
     ErrorResponse,
 )
 
@@ -21,8 +31,8 @@ from .errors import ConnectionError
 
 logger = logging.getLogger(__name__)
 
-# Type variable for BaseResponse subclasses
-T = TypeVar("T", bound=BaseResponse)
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class MessageSender:
@@ -34,161 +44,232 @@ class MessageSender:
         Args:
             connection: WebSocketConnection instance
         """
-        self.connection = connections
+        self.connection = connection
 
-    def _prepare_message(self, message_class: Type[T], **kwargs) -> T:
-        """Prepare a message with standard fields.
-
-        Args:
-            message_class: The message class to instantiate
-            **kwargs: Additional fields for the message
-
-        Returns:
-            An instance of the message class
-        """
-        return message_class(**kwargs)
-
-    async def _send_message(self, message: Any) -> None:
-        """Send a message over the WebSocket connection.
+    async def _send_model(self, model: BaseModel) -> None:
+        """Send a Pydantic model to the server.
 
         Args:
-            message: Message object to send (will be converted to dict)
-
-        Raises:
-            ConnectionError: If the message cannot be sent
+            model: Pydantic model to send
         """
+        if not self.connection.connected:
+            logger.warning("Cannot send message: Connection is not established")
+            return
+
         try:
-            # Convert Pydantic model to dict if it's a model
-            if hasattr(message, "model_dump"):
-                message_dict = message.model_dump()
-            else:
-                message_dict = message
-
-            await self.connection.send_json(message_dict)
-            logger.debug(f"Sent message: {json.dumps(message_dict)[:100]}...")
+            # Convert model to dict and send
+            message_dict = model.model_dump()
+            await self.connection.send(message_dict)
+            logger.debug(f"Message sent: {message_dict.get('type', 'unknown')}")
         except Exception as e:
             logger.error(f"Error sending message: {str(e)}")
-            raise ConnectionError(f"Failed to send message: {str(e)}")
 
     def send_generated_text(
         self,
         text: str,
         is_generation_end: bool = False,
-        loop: asyncio.AbstractEventLoop = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send generated text to the server.
-
-        Args:
-            text: The generated text
-            is_generation_end: Whether this is the end of generation
-            loop: Event loop to use for coroutine execution (uses current loop if None)
-        """
+        """Send generated text to the server."""
+        # Create the model with content
         content = GeneratedTextContent(text=text, is_generation_end=is_generation_end)
-        message = self._prepare_message(GeneratedTextMessage, content=content)
+        message = GeneratedTextMessage(content=content)
 
+        # Send the message
         if loop:
-            asyncio.run_coroutine_threadsafe(self._send_message(message), loop)
+            asyncio.run_coroutine_threadsafe(self._send_model(message), loop)
         else:
-            asyncio.create_task(self._send_message(message))
+            asyncio.create_task(self._send_model(message))
 
     def send_custom_ui_element(
-        self, ui_type: str, data: Dict[str, Any], loop: asyncio.AbstractEventLoop = None
+        self,
+        element: Union[
+            MCQQuestionElement,
+            NotificationElement,
+            PlacesAutocompleteElement,
+            UploadFileElement,
+            TextInputElement,
+            ConsentFormElement,
+            CalendlyElement,
+        ],
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a custom UI element to the server.
+        """Send a custom UI element to the server."""
+        # Create the message with just the element, no additional fields needed
+        message = CustomUIElementMessage(content=element)
 
-        This is a generic method for sending custom UI elements. For specific UI elements,
-        consider creating dedicated helper methods for better type safety and easier usage.
-
-        Args:
-            ui_type: Type of UI element - must be supported by the Framewise Meet client
-            data: Data specific to the UI element
-            loop: Event loop to use for coroutine execution (uses current loop if None)
-
-        Examples:
-            ```python
-            # Send a custom chart component
-            sender.send_custom_ui_element(
-                ui_type="chart",
-                data={
-                    "chart_type": "bar",
-                    "title": "Meeting Participation",
-                    "data": [10, 20, 35, 15],
-                    "labels": ["Week 1", "Week 2", "Week 3", "Week 4"]
-                }
-            )
-            ```
-
-        Notes:
-            For creating new custom UI element types, refer to the documentation on
-            adding custom UI components.
-        """
-        # Create a generic custom UI element
-        custom_element = {"type": ui_type, "data": data}
-        message = self._prepare_message(CustomUIElementMessage, content=custom_element)
-
+        # Send the message
         if loop:
-            asyncio.run_coroutine_threadsafe(self._send_message(message), loop)
+            asyncio.run_coroutine_threadsafe(self._send_model(message), loop)
         else:
-            asyncio.create_task(self._send_message(message))
+            asyncio.create_task(self._send_model(message))
 
     def send_mcq_question(
         self,
         question_id: str,
         question: str,
         options: List[str],
-        loop: asyncio.AbstractEventLoop = None,
         image_path: Optional[str] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send an MCQ question as a custom UI element.
-
-        Args:
-            question_id: Unique identifier for the question
-            question: The question text
-            options: List of option texts
-            loop: Event loop to run the coroutine in
-            image_path: Optional path to an image to display with the question
-        """
-        # Create a proper MCQ question element
-        mcq_data = MCQQuestionData(
+        """Send an MCQ question as a custom UI element."""
+        # Create the data and element
+        data = MCQQuestionData(
             id=question_id, question=question, options=options, image_path=image_path
         )
-        mcq_element = MCQQuestionElement(type="mcq_question", data=mcq_data)
-        message = self._prepare_message(CustomUIElementMessage, content=mcq_element)
+        element = MCQQuestionElement(type="mcq_question", data=data)
 
-        if loop:
-            asyncio.run_coroutine_threadsafe(self._send_message(message), loop)
-        else:
-            asyncio.create_task(self._send_message(message))
+        # Send the element
+        self.send_custom_ui_element(element, loop)
 
     def send_notification(
         self,
-        message: str,
+        notification_id: str,
+        text: str,
         level: str = "info",
         duration: int = 8000,
+        color: Optional[str] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a notification to be displayed in the UI.
+        """Send a notification as a custom UI element."""
+        # Create the data and element
+        data = NotificationData(
+            id=notification_id, text=text, level=level, duration=duration, color=color
+        )
+        element = NotificationElement(type="notification_element", data=data)
+
+        # Send the element
+        self.send_custom_ui_element(element, loop)
+
+    def send_places_autocomplete(
+        self,
+        element_id: str,
+        text: str,
+        placeholder: str = "Enter location",
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Send a places autocomplete field as a custom UI element.
 
         Args:
-            message: The notification message
-            level: Notification level (info, warning, error, success)
-            duration: Duration to show the notification in milliseconds
-            loop: Event loop to run the coroutine in
+            element_id: Unique identifier for the element
+            text: Prompt text to display to the user
+            placeholder: Placeholder text for the input field
+            loop: Event loop to use for coroutine execution (uses current loop if None)
         """
-        notification_data = NotificationData(
-            message=message, level=level, duration=duration
-        )
-        notification_element = NotificationElement(
-            type="notification_element", data=notification_data
-        )
-        msg = self._prepare_message(
-            CustomUIElementMessage, content=notification_element
-        )
+        # Create the data and element
+        data = PlacesAutocompleteData(id=element_id, text=text, placeholder=placeholder)
+        element = PlacesAutocompleteElement(type="places_autocomplete", data=data)
 
-        if loop:
-            asyncio.run_coroutine_threadsafe(self._send_message(msg), loop)
-        else:
-            asyncio.create_task(self._send_message(msg))
+        # Send the element
+        self.send_custom_ui_element(element, loop)
+
+    def send_upload_file(
+        self,
+        element_id: str,
+        text: str,
+        allowed_types: Optional[List[str]] = None,
+        max_size_mb: Optional[int] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Send a file upload element as a custom UI element.
+
+        Args:
+            element_id: Unique identifier for the element
+            text: Prompt text to display to the user
+            allowed_types: List of allowed MIME types (e.g., ["application/pdf"])
+            max_size_mb: Maximum file size in MB
+            loop: Event loop to use for coroutine execution (uses current loop if None)
+        """
+        # Create the data and element
+        data = UploadFileData(
+            id=element_id, text=text, allowedTypes=allowed_types, maxSizeMB=max_size_mb
+        )
+        element = UploadFileElement(type="upload_file", data=data)
+
+        # Send the element
+        self.send_custom_ui_element(element, loop)
+
+    def send_text_input(
+        self,
+        element_id: str,
+        prompt: str,
+        placeholder: str = "",
+        multiline: bool = False,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Send a text input element as a custom UI element.
+
+        Args:
+            element_id: Unique identifier for the element
+            prompt: Prompt text to display to the user
+            placeholder: Placeholder text for the input field
+            multiline: Whether the input should be multiline
+            loop: Event loop to use for coroutine execution (uses current loop if None)
+        """
+        # Create the data and element
+        data = TextInputData(
+            id=element_id, prompt=prompt, placeholder=placeholder, multiline=multiline
+        )
+        element = TextInputElement(type="textinput", data=data)
+
+        # Send the element
+        self.send_custom_ui_element(element, loop)
+
+    def send_consent_form(
+        self,
+        element_id: str,
+        text: str,
+        checkbox_label: str = "I agree",
+        submit_label: str = "Submit",
+        required: bool = True,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Send a consent form element as a custom UI element.
+
+        Args:
+            element_id: Unique identifier for the element
+            text: Consent form text to display to the user
+            checkbox_label: Label for the checkbox
+            submit_label: Label for the submit button
+            required: Whether consent is required
+            loop: Event loop to use for coroutine execution (uses current loop if None)
+        """
+        # Create the data and element
+        data = ConsentFormData(
+            id=element_id,
+            text=text,
+            checkboxLabel=checkbox_label,
+            submitLabel=submit_label,
+            required=required,
+        )
+        element = ConsentFormElement(type="consent_form", data=data)
+
+        # Send the element
+        self.send_custom_ui_element(element, loop)
+
+    def send_calendly(
+        self,
+        element_id: str,
+        url: str,
+        title: str = "Schedule a meeting",
+        subtitle: Optional[str] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Send a Calendly scheduling element as a custom UI element.
+
+        Args:
+            element_id: Unique identifier for the element
+            url: Calendly URL for scheduling
+            title: Title text to display
+            subtitle: Subtitle text to display
+            loop: Event loop to use for coroutine execution (uses current loop if None)
+        """
+        # Create the data and element
+        data = CalendlyData(id=element_id, url=url, title=title, subtitle=subtitle)
+        element = CalendlyElement(type="calendly", data=data)
+
+        # Send the element
+        self.send_custom_ui_element(element, loop)
 
     def send_error(
         self,
@@ -196,18 +277,12 @@ class MessageSender:
         error_code: Optional[str] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send an error message to the server.
+        """Send an error message to the server."""
+        # Create the error message
+        message = ErrorResponse(error=error_message, error_code=error_code)
 
-        Args:
-            error_message: The error message
-            error_code: Optional error code
-            loop: Event loop to run the coroutine in
-        """
-        message = self._prepare_message(
-            ErrorResponse, error=error_message, error_code=error_code
-        )
-
+        # Send the message
         if loop:
-            asyncio.run_coroutine_threadsafe(self._send_message(message), loop)
+            asyncio.run_coroutine_threadsafe(self._send_model(message), loop)
         else:
-            asyncio.create_task(self._send_message(message))
+            asyncio.create_task(self._send_model(message))

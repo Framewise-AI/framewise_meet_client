@@ -87,15 +87,8 @@ class ConnectionRejectedEvent(BaseModel):
     error_code: Optional[str] = Field(None, description="Error code")
 
 
-class BaseMessage(BaseModel):
-    """Base class for all messages."""
 
-    message_id: str = Field(..., description="Unique identifier for the message")
-    meeting_id: str = Field(..., description="ID of the meeting")
-    timestamp: str = Field(..., description="Timestamp of the message")
-
-
-class TranscriptMessage(BaseMessage):
+class TranscriptMessage(BaseModel):
     """Transcript message received from the server."""
 
     type: Literal["transcript"] = "transcript"
@@ -114,28 +107,28 @@ class TranscriptMessage(BaseMessage):
             self.content.is_final = self.is_final
 
 
-class InvokeMessage(BaseMessage):
+class InvokeMessage(BaseModel):
     """Invoke message received from the server."""
 
     type: Literal["invoke"] = "invoke"
     content: InvokeContent = Field(..., description="Content of the invoke message")
 
 
-class JoinMessage(BaseMessage):
+class JoinMessage(BaseModel):
     """Join message received from the server."""
 
     type: Literal["on_join"] = "on_join"
     content: JoinEvent = Field(..., description="Content of the join message")
 
 
-class ExitMessage(BaseMessage):
+class ExitMessage(BaseModel):
     """Exit message received from the server."""
 
     type: Literal["on_exit"] = "on_exit"
     content: ExitEvent = Field(..., description="Content of the exit message")
 
 
-class MCQSelectionMessage(BaseMessage):
+class MCQSelectionMessage(BaseModel):
     """MCQ selection message received from the server."""
 
     type: Literal["mcq_selection"] = "mcq_selection"
@@ -144,10 +137,10 @@ class MCQSelectionMessage(BaseMessage):
     )
 
 
-class CustomUIMessage(BaseMessage):
+class CustomUIElementResponse(BaseModel):
     """Custom UI message received from the server."""
 
-    type: Literal["custom_ui"] = "custom_ui"
+    type: Literal["custom_ui"] = "custom_ui_element_response"
     content: CustomUIEvent = Field(..., description="Content of the custom UI message")
 
 

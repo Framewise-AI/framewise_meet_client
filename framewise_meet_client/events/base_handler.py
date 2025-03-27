@@ -1,10 +1,9 @@
 import logging
 from typing import Dict, Any, Callable, TypeVar, Generic, Type, Union
 
-from ..models.messages import BaseMessage
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
-T = TypeVar("T", bound=BaseMessage)
+T = TypeVar("T", bound=BaseModel)
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +12,7 @@ class EventHandler(Generic[T]):
     """Base class for event handlers."""
 
     event_type: str = ""
-    message_class: Type[BaseMessage] = None
+    message_class: Type[BaseModel] = None
 
     def __init__(self, dispatcher):
         """Initialize the event handler.
@@ -41,7 +40,7 @@ class EventHandler(Generic[T]):
                 try:
                     converted = self.message_class.model_validate(data)
                     return handler_func(converted)
-                except Exception as e:
+                except ValidationError as e:
                     logger.error(
                         f"Failed to convert dict to {self.message_class.__name__}: {e}"
                     )
@@ -58,20 +57,18 @@ class EventHandler(Generic[T]):
                             return handler_func(converted)
                     except Exception as inner_e:
                         logger.error(f"Could not create minimal instance: {inner_e}")
-                        raise ValueError(
-                            f"Cannot handle event: failed to convert to {self.message_class.__name__}"
-                        )
+                        # Return data as-is instead of raising an exception
+                        logger.warning(f"Falling back to raw data for handler")
+                        return handler_func(data)
             elif isinstance(data, self.message_class):
                 # Already the correct type
                 return handler_func(data)
             else:
-                # Unknown data type
+                # Unknown data type - log error but still call handler with data
                 logger.error(
                     f"Unexpected data type for {self.event_type}: {type(data)}"
                 )
-                raise TypeError(
-                    f"Expected {self.message_class.__name__}, got {type(data)}"
-                )
+                return handler_func(data)
 
         logger.info(
             f"Registered handler for {self.event_type} events using {self.message_class.__name__}"

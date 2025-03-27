@@ -2,13 +2,12 @@
 
 # Import and re-export inbound message types
 from .inbound import (
-    BaseMessage,
     TranscriptMessage,
     InvokeMessage,
     JoinMessage,
     ExitMessage,
     MCQSelectionMessage,
-    CustomUIMessage as InboundCustomUIMessage,
+    CustomUIElementResponse as InboundCustomUIMessage,  # Fix typo
     ConnectionRejectedMessage,
     TranscriptContent,
     InvokeContent,
@@ -21,7 +20,6 @@ from .inbound import (
 
 # Import and re-export outbound message types
 from .outbound import (
-    BaseResponse,
     GeneratedTextMessage,
     MCQMessage,
     CustomUIMessage as OutboundCustomUIMessage,
@@ -46,7 +44,6 @@ from .outbound import (
 # Export everything with type aliases to avoid confusion
 __all__ = [
     # Inbound message base types
-    "BaseMessage",
     # Inbound message types
     "TranscriptMessage",
     "InvokeMessage",
@@ -62,8 +59,7 @@ __all__ = [
     "MCQSelectionEvent",
     "CustomUIEvent",
     "ConnectionRejectedEvent",
-    # Outbound message base types
-    "BaseResponse",
+    # Outbound message base types,
     # Outbound message types
     "GeneratedTextMessage",
     "MCQMessage",

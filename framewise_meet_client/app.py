@@ -7,15 +7,41 @@ from .connection import WebSocketConnection
 from .event_handler import EventDispatcher
 from .errors import AppNotRunningError, ConnectionError, AuthenticationError
 from .messaging import MessageSender
-from .models.messages import (
+from pydantic import BaseModel
+# Import inbound messages
+from .models.inbound import (
     JoinMessage,
     ExitMessage,
     TranscriptMessage,
-    CustomUIElementMessage,
+    InvokeMessage,
     MCQSelectionMessage,
+    CustomUIElementResponse as InboundCustomUIMessage,  # Fix typo here
     ConnectionRejectedMessage,
-    MessagePayload,
-    BaseMessage,
+    TranscriptContent,
+    JoinEvent,
+    ExitEvent,
+    MCQSelectionEvent,
+    CustomUIEvent,
+    ConnectionRejectedEvent,
+)
+# Import outbound messages
+from .models.outbound import (
+    GeneratedTextMessage,
+    MCQMessage,
+    CustomUIElement as OutboundCustomUIMessage,
+    CustomUIElementMessage,
+    ErrorResponse,
+    GeneratedTextContent,
+    MCQContent,
+    CustomUIContent,
+    MultipleChoiceQuestion,
+    MCQOption,
+    ButtonElement,
+    InputElement,
+    MCQQuestionData,
+    MCQQuestionElement,
+    NotificationData,
+    NotificationElement,
 )
 import datetime
 from .events import (
@@ -25,6 +51,12 @@ from .events import (
     CUSTOM_UI_EVENT,
     INVOKE_EVENT,
     CONNECTION_REJECTED_EVENT,
+    MCQ_QUESTION_EVENT,
+    PLACES_AUTOCOMPLETE_EVENT,
+    UPLOAD_FILE_EVENT,
+    TEXTINPUT_EVENT,
+    CONSENT_FORM_EVENT,
+    CALENDLY_EVENT,
     register_event_handler,
 )
 
@@ -47,7 +79,7 @@ class EventType(Enum):
     CONNECTION_REJECTED = CONNECTION_REJECTED_EVENT
 
 
-T = TypeVar("T", bound=BaseMessage)
+T = TypeVar("T", bound=BaseModel)
 
 
 class App:
@@ -61,6 +93,12 @@ class App:
         "custom_ui": CUSTOM_UI_EVENT,
         "invoke": INVOKE_EVENT,
         "connection_rejected": CONNECTION_REJECTED_EVENT,
+        "mcq_question": MCQ_QUESTION_EVENT,
+        "places_autocomplete": PLACES_AUTOCOMPLETE_EVENT,
+        "upload_file": UPLOAD_FILE_EVENT,
+        "textinput": TEXTINPUT_EVENT,
+        "consent_form": CONSENT_FORM_EVENT,
+        "calendly": CALENDLY_EVENT,
     }
 
     _message_type_mapping = {
@@ -106,7 +144,7 @@ class App:
             if not name.startswith("_") and callable(
                 getattr(self.message_sender, name)
             ):
-                logging.info("set {name} in {message_sender}")
+                logging.info(f"Set {name} in message_sender")
                 setattr(self, name, getattr(self.message_sender, name))
 
     def on(self, event_type: str):
@@ -174,7 +212,7 @@ class App:
     def _on_event(
         self,
         event_type: Union[str, EventType],
-        func: Callable[[BaseMessage], Any] = None,
+        func: Callable[[BaseModel], Any] = None,
         shorthand_name: str = None,
     ):
         """Helper function to reduce code duplication in event registration."""
@@ -238,15 +276,26 @@ class App:
         )
         runner.run(self)
 
+    # Update the default connection rejected handler with better error handling
     def _register_default_handlers(self):
         """Register default handlers for important system events if not already registered."""
         if CONNECTION_REJECTED_EVENT not in self.event_dispatcher.handlers:
 
             @self.on_connection_rejected
-            def default_connection_rejected_handler(message: ConnectionRejectedMessage):
-                reason = message.content.reason
-                meeting_id = message.content.meeting_id
-                logger.error(f"Connection rejected for meeting {meeting_id}: {reason}")
+            def default_connection_rejected_handler(message):
+                # More robust handling of message content
+                reason = "Unknown reason"
+                try:
+                    if hasattr(message, 'content') and hasattr(message.content, 'reason'):
+                        reason = message.content.reason
+                    elif isinstance(message, dict) and 'content' in message:
+                        content = message['content']
+                        if isinstance(content, dict) and 'reason' in content:
+                            reason = content['reason']
+                except Exception as e:
+                    logger.error(f"Error extracting rejection reason: {e}")
+                    
+                logger.error(f"Connection rejected: {reason}")
                 self.running = False
 
     def stop(self) -> None:
@@ -295,7 +344,7 @@ class App:
         logger.info(f"Meeting created with ID: {meeting_id}")
         return meeting_data
 
-    def on_ui_type(self, ui_type: str):
+    def on_ui_type(self, ui_type: str) -> Callable[[Callable[[CustomUIElementMessage], Any]], Callable[[CustomUIElementMessage], Any]]:
         """Register a handler for a specific UI element type.
 
         Args:
@@ -318,3 +367,96 @@ class App:
         return self._on_event(
             EventType.CONNECTION_REJECTED, func, "on_connection_rejected"
         )
+
+    # Add convenience methods for UI element response handlers
+    def on_custom_ui_element_response(self, func=None):
+        """Register a handler for custom UI element response events.
+
+        Args:
+            func: Function that takes a CustomUIElementMessage and processes it.
+                  If None, returns a decorator.
+
+        Returns:
+            Either the registered function or a decorator function
+        """
+        return self.on(CUSTOM_UI_EVENT)(func) if func else self.on(CUSTOM_UI_EVENT)
+
+    def on_mcq_question_response(self, func=None):
+        """Register a handler for MCQ question response events.
+
+        Args:
+            func: Function that takes a CustomUIElementMessage with MCQ data and processes it.
+                  If None, returns a decorator.
+
+        Returns:
+            Either the registered function or a decorator function
+        """
+        return (
+            self.on(MCQ_QUESTION_EVENT)(func) if func else self.on(MCQ_QUESTION_EVENT)
+        )
+
+    def on_places_autocomplete_response(self, func=None):
+        """Register a handler for places autocomplete response events.
+
+        Args:
+            func: Function that takes a CustomUIElementMessage with places autocomplete data and processes it.
+                  If None, returns a decorator.
+
+        Returns:
+            Either the registered function or a decorator function
+        """
+        return (
+            self.on(PLACES_AUTOCOMPLETE_EVENT)(func)
+            if func
+            else self.on(PLACES_AUTOCOMPLETE_EVENT)
+        )
+
+    def on_upload_file_response(self, func=None):
+        """Register a handler for file upload response events.
+
+        Args:
+            func: Function that takes a CustomUIElementMessage with file upload data and processes it.
+                  If None, returns a decorator.
+
+        Returns:
+            Either the registered function or a decorator function
+        """
+        return self.on(UPLOAD_FILE_EVENT)(func) if func else self.on(UPLOAD_FILE_EVENT)
+
+    def on_textinput_response(self, func=None):
+        """Register a handler for text input response events.
+
+        Args:
+            func: Function that takes a CustomUIElementMessage with text input data and processes it.
+                  If None, returns a decorator.
+
+        Returns:
+            Either the registered function or a decorator function
+        """
+        return self.on(TEXTINPUT_EVENT)(func) if func else self.on(TEXTINPUT_EVENT)
+
+    def on_consent_form_response(self, func=None):
+        """Register a handler for consent form response events.
+
+        Args:
+            func: Function that takes a CustomUIElementMessage with consent form data and processes it.
+                  If None, returns a decorator.
+
+        Returns:
+            Either the registered function or a decorator function
+        """
+        return (
+            self.on(CONSENT_FORM_EVENT)(func) if func else self.on(CONSENT_FORM_EVENT)
+        )
+
+    def on_calendly_response(self, func=None):
+        """Register a handler for Calendly scheduling response events.
+
+        Args:
+            func: Function that takes a CustomUIElementMessage with Calendly data and processes it.
+                  If None, returns a decorator.
+
+        Returns:
+            Either the registered function or a decorator function
+        """
+        return self.on(CALENDLY_EVENT)(func) if func else self.on(CALENDLY_EVENT)
