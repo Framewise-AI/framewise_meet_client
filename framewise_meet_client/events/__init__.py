@@ -3,7 +3,7 @@ from ..models.inbound import (
     JoinMessage,
     ExitMessage,
     TranscriptMessage,
-    CustonUIElementResponse,
+    CustomUIElementResponse,
     ConnectionRejectedMessage,
     InvokeMessage
 )
@@ -40,7 +40,7 @@ EVENT_HANDLERS = {
     CUSTOM_UI_EVENT: CustomUIHandler,
     INVOKE_EVENT: InvokeHandler,
     CONNECTION_REJECTED_EVENT: ConnectionRejectedHandler,
-    CUSTOM_UI_ELEMENT_RESPONSE_EVENT: CustomUIElementResponse,  # Fix class name here
+    CUSTOM_UI_ELEMENT_RESPONSE_EVENT: CustomUIHandler,  # Corrected to reference the handler class
     # UI Element Response subtypes - reuse the CustomUIHandler
     MCQ_QUESTION_EVENT: CustomUIHandler,
     PLACES_AUTOCOMPLETE_EVENT: CustomUIHandler,

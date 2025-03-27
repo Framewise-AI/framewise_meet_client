@@ -182,7 +182,7 @@ class MessageSender:
         """
         # Create the data and element
         data = UploadFileData(
-            id=element_id, text=text, allowedTypes=allowed_types, maxSizeMB=max_size_mb
+            id=element_id, text=text, allowed_types=allowed_types, maxSizeMB=max_size_mb
         )
         element = UploadFileElement(type="upload_file", data=data)
 

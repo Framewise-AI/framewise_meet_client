@@ -9,7 +9,7 @@ from .models.inbound import (
     JoinMessage,
     ExitMessage,
     TranscriptMessage,
-    CustonUIElementResponse,
+    CustomUIElementResponse,
     MCQSelectionMessage,
     ConnectionRejectedMessage,
 )

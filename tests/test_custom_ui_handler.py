@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock, MagicMock
 from framewise_meet_client.events.custom_ui_handler import CustomUIHandler
 from framewise_meet_client.event_handler import EventDispatcher
-from framewise_meet_client.models.outbound import CustomUIElementMessage as CustonUIElementResponse
+from framewise_meet_client.models.outbound import CustomUIElementMessage as CustomUIElementResponse
 
 class TestCustomUIHandler(unittest.TestCase):
     def setUp(self):
@@ -15,7 +15,7 @@ class TestCustomUIHandler(unittest.TestCase):
 
     def test_message_class(self):
         """Test that the message_class is correctly set."""
-        self.assertEqual(self.handler.message_class, CustonUIElementResponse)
+        self.assertEqual(self.handler.message_class, CustomUIElementResponse)
 
     def test_get_element_type_valid(self):
         """Test extracting the element type from a valid payload."""

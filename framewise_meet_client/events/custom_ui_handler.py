@@ -21,33 +21,3 @@ class CustomUIHandler(EventHandler[CustomUIElementResponse]):
             logger.error(f"Error extracting UI element type: {e}")
             return None
 
-# Move function to error_handling.py or a separate validation module
-def extract_element_type(data):
-    """
-    Extract the UI element type from the custom UI element data.
-    
-    Args:
-        data: The data containing the custom UI element information.
-        
-    Returns:
-        The element type string or None if it can't be determined.
-    """
-    # Add validation checks that raise ValueError
-    if data is None:
-        raise ValueError("Data cannot be None")
-    
-    if not isinstance(data, dict):
-        raise ValueError("Data must be a dictionary")
-    
-    if not data:
-        raise ValueError("Data dictionary cannot be empty")
-        
-    if "content" not in data:
-        raise ValueError("Missing 'content' field in data")
-        
-    content = data.get("content")
-    
-    if not isinstance(content, dict):
-        return None
-        
-    return content.get("type")

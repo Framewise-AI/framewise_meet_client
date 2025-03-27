@@ -143,7 +143,7 @@ class NotificationData(BaseModel):
 
     id: str = Field(..., description="Notification identifier")
     level: str = Field(
-        "info", description="Notification level (info, warni text: ng, error, success)"
+        "info", description="Notification level (info, warning, error, success)"
     )
     text: str = Field(..., description="notification text")
     duration: int = Field(8000, description="Duration in milliseconds")
@@ -188,7 +188,7 @@ class UploadFileData(BaseModel):
 
     id: str = Field(..., description="Element identifier")
     text: str = Field(..., description="Prompt text")
-    allowedTypes: Optional[List[str]] = Field(None, description="Allowed file types")
+    allowed_types: Optional[List[str]] = Field(None, description="Allowed file types")
     maxSizeMB: Optional[int] = Field(None, description="Maximum file size in MB")
 
 

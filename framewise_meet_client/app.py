@@ -106,7 +106,7 @@ class App:
         EXIT_EVENT: ExitMessage,
         TRANSCRIPT_EVENT: TranscriptMessage,
         CUSTOM_UI_EVENT: CustomUIElementMessage,
-        INVOKE_EVENT: TranscriptMessage,
+        INVOKE_EVENT: InvokeMessage,
         CONNECTION_REJECTED_EVENT: ConnectionRejectedMessage,
     }
 

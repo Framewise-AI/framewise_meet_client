@@ -2,6 +2,7 @@
 
 import logging
 from typing import Optional, Dict, Any
+import os
 
 from .app import App
 from .config import ClientConfig
