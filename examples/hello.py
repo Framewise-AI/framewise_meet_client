@@ -1,12 +1,12 @@
 import logging
 import uuid
 from framewise_meet_client.app import App
-from framewise_meet_client.models.messages import (
+from framewise_meet_client.models.inbound import (
     TranscriptMessage,
     MCQSelectionMessage,
     JoinMessage,
     ExitMessage,
-    CustomUIElementMessage,
+    CustomUIElementResponse,
 )
 
 logging.basicConfig(
@@ -42,7 +42,7 @@ def process_final_transcript(message: TranscriptMessage):
 
 
 @app.on("mcq_question")
-def on_mcq_question_ui(message: CustomUIElementMessage):
+def on_mcq_question_ui(message: CustomUIElementResponse):
     mcq_data = message.content.data
     selected_option = mcq_data.selectedIndex
     selected_index = mcq_data.selectedOption
@@ -57,7 +57,7 @@ def on_mcq_question_ui(message: CustomUIElementMessage):
 
 
 @app.on_custom_ui_response()
-def on_mcq_question_ui(message: CustomUIElementMessage):
+def on_mcq_question_ui(message: CustomUIElementResponse):
     subtype = message.content.type
     if subtype == "mcq_question":
         mcq_data = message.content.data

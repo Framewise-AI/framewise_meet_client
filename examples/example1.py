@@ -1,12 +1,12 @@
 import logging
 import uuid
 from framewise_meet_client.app import App
-from framewise_meet_client.models.messages import (
+from framewise_meet_client.models.inbound import (
     TranscriptMessage,
     MCQSelectionMessage,
     JoinMessage,
     ExitMessage,
-    CustomUIElementMessage,
+    CustomUIElementResponse as CustomUIElementMessage,
     ConnectionRejectedMessage,
 )
 
