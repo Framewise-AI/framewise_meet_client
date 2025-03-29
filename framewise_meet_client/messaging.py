@@ -83,20 +83,18 @@ class MessageSender:
 
     def send_custom_ui_element(
         self,
-        element: Union[
-            MCQQuestionElement,
-            NotificationElement,
-            PlacesAutocompleteElement,
-            UploadFileElement,
-            TextInputElement,
-            ConsentFormElement,
-            CalendlyElement,
-        ],
+        ui_element: Union[MCQQuestionElement, NotificationElement, PlacesAutocompleteElement,
+                          UploadFileElement, TextInputElement, ConsentFormElement, CalendlyElement],
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a custom UI element to the server."""
-        # Create the message with just the element, no additional fields needed
-        message = CustomUIElementMessage(content=element)
+        """Send a custom UI element to the server using proper Pydantic models.
+
+        Args:
+            ui_element: A strongly-typed Pydantic model for the UI element
+            loop: Event loop to use for coroutine execution (uses current loop if None)
+        """
+        # Create the message with the element
+        message = CustomUIElementMessage(content=ui_element)
 
         # Send the message
         if loop:
@@ -113,14 +111,19 @@ class MessageSender:
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         """Send an MCQ question as a custom UI element."""
-        # Create the data and element
-        data = MCQQuestionData(
-            id=question_id, question=question, options=options, image_path=image_path
+        # Create the model with properly typed data
+        mcq_data = MCQQuestionData(
+            id=question_id,
+            question=question,
+            options=options,
+            image_path=image_path
         )
-        element = MCQQuestionElement(type="mcq_question", data=data)
-
-        # Send the element
-        self.send_custom_ui_element(element, loop)
+        
+        # Create the element model
+        mcq_element = MCQQuestionElement(type="mcq_question", data=mcq_data)
+        
+        # Send as custom UI element
+        self.send_custom_ui_element(mcq_element, loop)
 
     def send_notification(
         self,
@@ -132,14 +135,23 @@ class MessageSender:
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         """Send a notification as a custom UI element."""
-        # Create the data and element
-        data = NotificationData(
-            id=notification_id, text=text, level=level, duration=duration, color=color
+        # Create the model with properly typed data
+        notification_data = NotificationData(
+            id=notification_id,
+            text=text,
+            level=level, 
+            duration=duration,
+            color=color
         )
-        element = NotificationElement(type="notification_element", data=data)
-
-        # Send the element
-        self.send_custom_ui_element(element, loop)
+        
+        # Create the element model
+        notification_element = NotificationElement(
+            type="notification_element", 
+            data=notification_data
+        )
+        
+        # Send as custom UI element
+        self.send_custom_ui_element(notification_element, loop)
 
     def send_places_autocomplete(
         self,
@@ -148,20 +160,22 @@ class MessageSender:
         placeholder: str = "Enter location",
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a places autocomplete field as a custom UI element.
-
-        Args:
-            element_id: Unique identifier for the element
-            text: Prompt text to display to the user
-            placeholder: Placeholder text for the input field
-            loop: Event loop to use for coroutine execution (uses current loop if None)
-        """
-        # Create the data and element
-        data = PlacesAutocompleteData(id=element_id, text=text, placeholder=placeholder)
-        element = PlacesAutocompleteElement(type="places_autocomplete", data=data)
-
-        # Send the element
-        self.send_custom_ui_element(element, loop)
+        """Send a places autocomplete field as a custom UI element."""
+        # Create the model with properly typed data
+        places_data = PlacesAutocompleteData(
+            id=element_id,
+            text=text,
+            placeholder=placeholder
+        )
+        
+        # Create the element model
+        places_element = PlacesAutocompleteElement(
+            type="places_autocomplete", 
+            data=places_data
+        )
+        
+        # Send as custom UI element
+        self.send_custom_ui_element(places_element, loop)
 
     def send_upload_file(
         self,
@@ -171,23 +185,23 @@ class MessageSender:
         max_size_mb: Optional[int] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a file upload element as a custom UI element.
-
-        Args:
-            element_id: Unique identifier for the element
-            text: Prompt text to display to the user
-            allowed_types: List of allowed MIME types (e.g., ["application/pdf"])
-            max_size_mb: Maximum file size in MB
-            loop: Event loop to use for coroutine execution (uses current loop if None)
-        """
-        # Create the data and element
-        data = UploadFileData(
-            id=element_id, text=text, allowed_types=allowed_types, maxSizeMB=max_size_mb
+        """Send a file upload element as a custom UI element."""
+        # Create the model with properly typed data
+        upload_data = UploadFileData(
+            id=element_id,
+            text=text,
+            allowed_types=allowed_types,
+            maxSizeMB=max_size_mb
         )
-        element = UploadFileElement(type="upload_file", data=data)
-
-        # Send the element
-        self.send_custom_ui_element(element, loop)
+        
+        # Create the element model
+        upload_element = UploadFileElement(
+            type="upload_file", 
+            data=upload_data
+        )
+        
+        # Send as custom UI element
+        self.send_custom_ui_element(upload_element, loop)
 
     def send_text_input(
         self,
@@ -197,23 +211,23 @@ class MessageSender:
         multiline: bool = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a text input element as a custom UI element.
-
-        Args:
-            element_id: Unique identifier for the element
-            prompt: Prompt text to display to the user
-            placeholder: Placeholder text for the input field
-            multiline: Whether the input should be multiline
-            loop: Event loop to use for coroutine execution (uses current loop if None)
-        """
-        # Create the data and element
-        data = TextInputData(
-            id=element_id, prompt=prompt, placeholder=placeholder, multiline=multiline
+        """Send a text input element as a custom UI element."""
+        # Create the model with properly typed data
+        text_input_data = TextInputData(
+            id=element_id,
+            prompt=prompt,
+            placeholder=placeholder,
+            multiline=multiline
         )
-        element = TextInputElement(type="textinput", data=data)
-
-        # Send the element
-        self.send_custom_ui_element(element, loop)
+        
+        # Create the element model
+        text_input_element = TextInputElement(
+            type="textinput", 
+            data=text_input_data
+        )
+        
+        # Send as custom UI element
+        self.send_custom_ui_element(text_input_element, loop)
 
     def send_consent_form(
         self,
@@ -224,28 +238,24 @@ class MessageSender:
         required: bool = True,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a consent form element as a custom UI element.
-
-        Args:
-            element_id: Unique identifier for the element
-            text: Consent form text to display to the user
-            checkbox_label: Label for the checkbox
-            submit_label: Label for the submit button
-            required: Whether consent is required
-            loop: Event loop to use for coroutine execution (uses current loop if None)
-        """
-        # Create the data and element
-        data = ConsentFormData(
+        """Send a consent form element as a custom UI element."""
+        # Create the model with properly typed data
+        consent_form_data = ConsentFormData(
             id=element_id,
             text=text,
             checkboxLabel=checkbox_label,
             submitLabel=submit_label,
-            required=required,
+            required=required
         )
-        element = ConsentFormElement(type="consent_form", data=data)
-
-        # Send the element
-        self.send_custom_ui_element(element, loop)
+        
+        # Create the element model
+        consent_form_element = ConsentFormElement(
+            type="consent_form", 
+            data=consent_form_data
+        )
+        
+        # Send as custom UI element
+        self.send_custom_ui_element(consent_form_element, loop)
 
     def send_calendly(
         self,
@@ -255,21 +265,23 @@ class MessageSender:
         subtitle: Optional[str] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a Calendly scheduling element as a custom UI element.
-
-        Args:
-            element_id: Unique identifier for the element
-            url: Calendly URL for scheduling
-            title: Title text to display
-            subtitle: Subtitle text to display
-            loop: Event loop to use for coroutine execution (uses current loop if None)
-        """
-        # Create the data and element
-        data = CalendlyData(id=element_id, url=url, title=title, subtitle=subtitle)
-        element = CalendlyElement(type="calendly", data=data)
-
-        # Send the element
-        self.send_custom_ui_element(element, loop)
+        """Send a Calendly scheduling element as a custom UI element."""
+        # Create the model with properly typed data
+        calendly_data = CalendlyData(
+            id=element_id,
+            url=url,
+            title=title,
+            subtitle=subtitle
+        )
+        
+        # Create the element model
+        calendly_element = CalendlyElement(
+            type="calendly", 
+            data=calendly_data
+        )
+        
+        # Send as custom UI element
+        self.send_custom_ui_element(calendly_element, loop)
 
     def send_error(
         self,

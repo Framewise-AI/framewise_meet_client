@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 import logging
 from .base_handler import EventHandler
-from ..models.outbound import CustomUIElementMessage as CustomUIElementResponse
+from ..models.inbound import CustomUIElementResponse
 from ..error_handling import extract_message_content_safely
 
 logger = logging.getLogger(__name__)
