@@ -27,6 +27,17 @@ from .models.outbound import (
     ErrorResponse,
 )
 
+from .models.inbound import (
+    CustomUIElementResponse,
+    CustomUIContent,
+    MCQQuestionResponseData,
+    PlacesAutocompleteResponseData,
+    UploadFileResponseData,
+    TextInputResponseData,
+    ConsentFormResponseData,
+    CalendlyResponseData,
+)
+
 from .errors import ConnectionError
 
 logger = logging.getLogger(__name__)
@@ -60,9 +71,71 @@ class MessageSender:
             # Convert model to dict and send
             message_dict = model.model_dump()
             await self.connection.send(message_dict)
+            logger.debug(message_dict)
             logger.debug(f"Message sent: {message_dict.get('type', 'unknown')}")
         except Exception as e:
             logger.error(f"Error sending message: {str(e)}")
+
+    async def _send_message(self, message: Dict[str, Any]) -> None:
+        """Send a message to the server.
+
+        Args:
+            message: The message to send
+
+        Raises:
+            ConnectionError: If the connection is not established
+        """
+        if not self.connection or not self.connection.connected:
+            raise ConnectionError("Not connected to server")
+
+        try:
+            # Add detailed message format logging
+            logger.debug(f"Sending message format: {json.dumps(message, indent=2)}")
+            await self.connection.send_json(message)
+            logger.debug(f"Sent message: {json.dumps(message)[:100]}...")
+        except Exception as e:
+            logger.error(f"Error sending message: {str(e)}")
+            raise ConnectionError(f"Failed to send message: {str(e)}")
+
+    async def _handle_ui_response(self, response_data: Dict[str, Any]) -> Any:
+        """Process UI element response data.
+        
+        Args:
+            response_data: Raw response data from the server
+            
+        Returns:
+            Properly typed UI element response data
+        """
+        try:
+            # Parse the response into the correct model
+            response = CustomUIElementResponse.model_validate(response_data)
+            
+            # Log the response type for debugging
+            logger.debug(f"Received UI response for element type: {response.content.type}")
+            
+            # Return the properly typed data based on the element type
+            element_type = response.content.type
+            data = response.content.data
+            
+            if element_type == "mcq_question":
+                return MCQQuestionResponseData(**data)
+            elif element_type == "places_autocomplete":
+                return PlacesAutocompleteResponseData(**data)
+            elif element_type == "upload_file":
+                return UploadFileResponseData(**data)
+            elif element_type == "textinput":
+                return TextInputResponseData(**data)
+            elif element_type == "consent_form":
+                return ConsentFormResponseData(**data)
+            elif element_type == "calendly":
+                return CalendlyResponseData(**data)
+                
+            # If we don't recognize the type, return the raw data
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error processing UI element response: {str(e)}")
+            return response_data
 
     def send_generated_text(
         self,
@@ -129,9 +202,8 @@ class MessageSender:
         self,
         notification_id: str,
         text: str,
-        level: str = "info",
+        level: str = "success",  # Changed default from "info" to "success"
         duration: int = 8000,
-        color: Optional[str] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         """Send a notification as a custom UI element."""
@@ -140,8 +212,7 @@ class MessageSender:
             id=notification_id,
             text=text,
             level=level, 
-            duration=duration,
-            color=color
+            duration=duration
         )
         
         # Create the element model

@@ -120,7 +120,7 @@ def on_custom_ui_response(message):
 @app.on("join")
 def on_user_join(message: JoinMessage):
     # Use proper Pydantic model access
-    meeting_id = message.content.user_joined.meeting_id
+    meeting_id = message.content.meeting_id
     print(f"User joined meeting: {meeting_id}")
 
     app.send_generated_text(f"Welcome to meeting {meeting_id}!", is_generation_end=True)

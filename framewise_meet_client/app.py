@@ -10,19 +10,21 @@ from .messaging import MessageSender
 from pydantic import BaseModel
 # Import inbound messages
 from .models.inbound import (
+    BaseMessage,
     JoinMessage,
     ExitMessage,
     TranscriptMessage,
     InvokeMessage,
     MCQSelectionMessage,
-    CustomUIElementResponse as InboundCustomUIMessage,  # Fix typo here
+    CustomUIElementResponse,
     ConnectionRejectedMessage,
     TranscriptContent,
     JoinEvent,
     ExitEvent,
     MCQSelectionEvent,
-    CustomUIEvent,
     ConnectionRejectedEvent,
+    CustomUIContent,
+    # Add any other imports needed
 )
 # Import outbound messages
 from .models.outbound import (
@@ -33,7 +35,7 @@ from .models.outbound import (
     ErrorResponse,
     GeneratedTextContent,
     MCQContent,
-    CustomUIContent,
+    CustomUIContent as OutboundCustomUIContent,
     MultipleChoiceQuestion,
     MCQOption,
     ButtonElement,
@@ -59,6 +61,7 @@ from .events import (
     CALENDLY_EVENT,
     register_event_handler,
 )
+from .exceptions import InvalidMessageTypeError
 
 import requests
 from .auth import authenticate_api_key
@@ -79,7 +82,7 @@ class EventType(Enum):
     CONNECTION_REJECTED = CONNECTION_REJECTED_EVENT
 
 
-T = TypeVar("T", bound=BaseModel)
+T = TypeVar("T", bound=BaseMessage)
 
 
 class App:
@@ -105,8 +108,8 @@ class App:
         JOIN_EVENT: JoinMessage,
         EXIT_EVENT: ExitMessage,
         TRANSCRIPT_EVENT: TranscriptMessage,
-        CUSTOM_UI_EVENT: CustomUIElementMessage,
-        INVOKE_EVENT: InvokeMessage,
+        CUSTOM_UI_EVENT: CustomUIElementResponse,
+        INVOKE_EVENT: TranscriptMessage,  # Note: InvokeMessage is just TranscriptMessage with is_final=True
         CONNECTION_REJECTED_EVENT: ConnectionRejectedMessage,
     }
 
@@ -147,46 +150,42 @@ class App:
                 logging.info(f"Set {name} in message_sender")
                 setattr(self, name, getattr(self.message_sender, name))
 
-    def on(self, event_type: str):
-        """Decorator to register an event handler for a specific message type.
-
-        Resolves event aliases to standard event types.
-
+    def on(self, event_type: str) -> Callable[[Callable[[BaseMessage], Any]], Callable[[BaseMessage], Any]]:
+        """Register a handler for a specific event type.
+        
         Args:
-            event_type: Type of event to handle (e.g., "transcript", "join")
-                        Or a UI element type (e.g., "mcq_question", "info_card")
-
+            event_type: The event type to register for (e.g., "transcript", "join", "exit")
+            
         Returns:
-            Decorator function
+            A decorator function that registers the handler
         """
-
+        # Check if this is an alias and get the main event type
         resolved_event_type = self._event_aliases.get(event_type, event_type)
-
+        
         if resolved_event_type != event_type:
-            logger.debug(
-                f"Resolved event alias '{event_type}' to standard event type '{resolved_event_type}'"
-            )
-
-        def decorator(func):
-            if event_type not in self._event_aliases:
-                logger.debug(
-                    f"Registering direct handler for UI element type: {event_type}"
-                )
-
-                def wrapper(data):
-                    if "parsed_message" in data:
-                        return func(data["parsed_message"])
-                    else:
-                        return func(data)
-
-                self.event_dispatcher.register_handler(event_type)(wrapper)
-                return func
-
-            logger.debug(
-                f"Registering handler for event type '{resolved_event_type}': {func.__name__}"
-            )
-            return register_event_handler(self, resolved_event_type, func)
-
+            logger.debug(f"Resolved event alias '{event_type}' to standard event type '{resolved_event_type}'")
+        
+        # Get the correct message type for this event
+        message_class = self._message_type_mapping.get(resolved_event_type)
+        
+        def decorator(func: Callable[[BaseMessage], Any]) -> Callable[[BaseMessage], Any]:
+            if self.event_dispatcher is None:
+                self.event_dispatcher = EventDispatcher()
+                
+            # Create a wrapper that ensures type safety
+            def type_safe_handler(message: BaseMessage) -> Any:
+                # Verify we got the correct message type
+                if message_class and not isinstance(message, message_class):
+                    logger.error(f"Expected {message_class.__name__}, got {type(message).__name__}")
+                    return None
+                
+                return func(message)
+                
+            # Register the handler with the specified event type
+            self.event_dispatcher.register(resolved_event_type, type_safe_handler)
+            logger.debug(f"Registered handler {func.__name__} for event type {resolved_event_type}")
+            return func
+            
         return decorator
 
     def __getattr__(self, name):
@@ -279,22 +278,11 @@ class App:
     # Update the default connection rejected handler with better error handling
     def _register_default_handlers(self):
         """Register default handlers for important system events if not already registered."""
-        if CONNECTION_REJECTED_EVENT not in self.event_dispatcher.handlers:
+        if CONNECTION_REJECTED_EVENT not in self.event_dispatcher._handlers:
 
             @self.on_connection_rejected
-            def default_connection_rejected_handler(message):
-                # More robust handling of message content
-                reason = "Unknown reason"
-                try:
-                    if hasattr(message, 'content') and hasattr(message.content, 'reason'):
-                        reason = message.content.reason
-                    elif isinstance(message, dict) and 'content' in message:
-                        content = message['content']
-                        if isinstance(content, dict) and 'reason' in content:
-                            reason = content['reason']
-                except Exception as e:
-                    logger.error(f"Error extracting rejection reason: {e}")
-                    
+            def default_connection_rejected_handler(message: ConnectionRejectedMessage):
+                reason = message.content.reason if hasattr(message, 'content') and hasattr(message.content, 'reason') else "Unknown reason"
                 logger.error(f"Connection rejected: {reason}")
                 self.running = False
 
@@ -348,7 +336,6 @@ class App:
         """Register a handler for a specific UI element type.
 
         Args:
-            ui_type: UI element type to handle (e.g., 'mcq_question', 'info_card')
 
         Returns:
             Decorator function
@@ -460,3 +447,98 @@ class App:
             Either the registered function or a decorator function
         """
         return self.on(CALENDLY_EVENT)(func) if func else self.on(CALENDLY_EVENT)
+
+    def on_ui_element_response(self, element_type: str = None):
+        """Register a handler for UI element responses.
+        
+        Args:
+            element_type: Optional specific UI element type to handle
+                          (mcq_question, places_autocomplete, etc.)
+        """
+        event_type = "custom_ui_element_response"
+        
+        def decorator(func):
+            # If a specific element type is provided
+            if element_type:
+                # Create wrapper that checks the element type
+                async def wrapper(message: CustomUIElementResponse):
+                    if not isinstance(message, CustomUIElementResponse):
+                        logger.error(f"Expected CustomUIElementResponse, got {type(message).__name__}")
+                        return
+                        
+                    try:
+                        if message.content.type == element_type:
+                            return await func(message)
+                    except Exception as e:
+                        logger.error(f"Error handling {element_type} response: {str(e)}")
+                
+                # Register element-specific handler
+                logger.debug(f"Registering handler for UI element type: {element_type}")
+                self.event_dispatcher.register(event_type, wrapper)
+            else:
+                # Register general handler for all UI responses
+                def type_safe_wrapper(message: CustomUIElementResponse):
+                    if not isinstance(message, CustomUIElementResponse):
+                        logger.error(f"Expected CustomUIElementResponse, got {type(message).__name__}")
+                        return
+                    
+                    try:
+                        return func(message)
+                    except Exception as e:
+                        logger.error(f"Error handling custom UI response: {str(e)}")
+                
+                self.event_dispatcher.register(event_type, type_safe_wrapper)
+                
+            return func
+            
+        return decorator
+        
+    # Convenience methods for specific UI element responses
+    
+    def on_mcq_response(self):
+        """Register a handler specifically for MCQ question responses."""
+        def mcq_decorator(func):
+            async def mcq_wrapper(message: CustomUIElementResponse):
+                try:
+                    if isinstance(message, CustomUIElementResponse) and message.content.type == "mcq_question":
+                        data = message.content.data
+                        # Access fields safely
+                        selected_option = getattr(data, "selectedOption", None)
+                        if selected_option is None and isinstance(data, dict):
+                            selected_option = data.get("selectedOption")
+                            
+                        selected_index = getattr(data, "selectedIndex", None)
+                        if selected_index is None and isinstance(data, dict):
+                            selected_index = data.get("selectedIndex")
+                            
+                        # Pass the processed message to the handler
+                        return await func(message)
+                except Exception as e:
+                    logger.error(f"Error handling MCQ question: {str(e)}")
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    
+            self.event_dispatcher.register("mcq_question", mcq_wrapper)
+            return func
+        
+        return mcq_decorator
+        
+    def on_places_autocomplete_response(self):
+        """Register a handler specifically for places autocomplete responses."""
+        return self.on_ui_element_response("places_autocomplete")
+    
+    def on_file_upload_response(self):
+        """Register a handler specifically for file upload responses."""
+        return self.on_ui_element_response("upload_file")
+    
+    def on_text_input_response(self):
+        """Register a handler specifically for text input responses."""
+        return self.on_ui_element_response("textinput")
+    
+    def on_consent_form_response(self):
+        """Register a handler specifically for consent form responses."""
+        return self.on_ui_element_response("consent_form")
+    
+    def on_calendly_response(self):
+        """Register a handler specifically for Calendly scheduling responses."""
+        return self.on_ui_element_response("calendly")

@@ -55,7 +55,6 @@ class TestMessageSender(unittest.TestCase):
             text="Test notification",
             level="info",
             duration=5000,
-            color="#FF0000"
         )
         
         # Verify create_task was called

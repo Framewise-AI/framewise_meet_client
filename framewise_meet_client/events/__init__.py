@@ -16,15 +16,13 @@ from .custom_ui_handler import CustomUIHandler
 from .invoke_handler import InvokeHandler
 from .connection_rejected_handler import ConnectionRejectedHandler
 
-# Event type constants
+# Define these constants for event types
 TRANSCRIPT_EVENT = "transcript"
 JOIN_EVENT = "on_join"
 EXIT_EVENT = "on_exit"
-CUSTOM_UI_EVENT = "custom_ui_element_response"
+CUSTOM_UI_EVENT = "custom_ui_element_response"  # Update this to match the correct type
 INVOKE_EVENT = "invoke"
 CONNECTION_REJECTED_EVENT = "connection_rejected"
-CUSTOM_UI_ELEMENT_RESPONSE_EVENT = "custom_ui_element_response"
-# UI Element Response subtypes
 MCQ_QUESTION_EVENT = "mcq_question"
 PLACES_AUTOCOMPLETE_EVENT = "places_autocomplete"
 UPLOAD_FILE_EVENT = "upload_file"
@@ -40,7 +38,6 @@ EVENT_HANDLERS = {
     CUSTOM_UI_EVENT: CustomUIHandler,
     INVOKE_EVENT: InvokeHandler,
     CONNECTION_REJECTED_EVENT: ConnectionRejectedHandler,
-    CUSTOM_UI_ELEMENT_RESPONSE_EVENT: CustomUIHandler,  # Corrected to reference the handler class
     # UI Element Response subtypes - reuse the CustomUIHandler
     MCQ_QUESTION_EVENT: CustomUIHandler,
     PLACES_AUTOCOMPLETE_EVENT: CustomUIHandler,
@@ -65,7 +62,6 @@ __all__ = [
     "CUSTOM_UI_EVENT",
     "INVOKE_EVENT",
     "CONNECTION_REJECTED_EVENT",
-    "CUSTOM_UI_ELEMENT_RESPONSE_EVENT",
     "MCQ_QUESTION_EVENT",
     "PLACES_AUTOCOMPLETE_EVENT",
     "UPLOAD_FILE_EVENT",

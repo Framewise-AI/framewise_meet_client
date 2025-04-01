@@ -143,11 +143,10 @@ class NotificationData(BaseModel):
 
     id: str = Field(..., description="Notification identifier")
     level: str = Field(
-        "info", description="Notification level (info, warning, error, success)"
+        "success", description="Notification level (info, warning, error, success)"
     )
     text: str = Field(..., description="notification text")
     duration: int = Field(8000, description="Duration in milliseconds")
-    color: Optional[str] = Field(None, description="Custom color for the notification")
 
 
 class NotificationElement(BaseModel):
