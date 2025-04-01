@@ -210,7 +210,7 @@ class MessageSender:
         # Create the model with properly typed data
         notification_data = NotificationData(
             id=notification_id,
-            text=text,
+            message=text,
             level=level, 
             duration=duration
         )

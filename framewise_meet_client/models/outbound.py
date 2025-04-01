@@ -142,10 +142,10 @@ class NotificationData(BaseModel):
     """Data for a notification UI element."""
 
     id: str = Field(..., description="Notification identifier")
-    level: str = Field(
-        "success", description="Notification level (info, warning, error, success)"
+    level: Literal["info", "warning", "error", "success"] = Field(
+        "info", description="Notification level"
     )
-    text: str = Field(..., description="notification text")
+    message: str = Field(..., description="Notification message text")
     duration: int = Field(8000, description="Duration in milliseconds")
 
 
