@@ -306,23 +306,23 @@ class App:
         if not self.api_key:
             raise AuthenticationError("API key is required to create a meeting")
 
-        if start_time is None:
-            start_time = datetime.datetime.utcnow()
-
-        if end_time is None:
-            end_time = start_time + datetime.timedelta(hours=1000)
-
-        start_time_utc = start_time.isoformat() + "Z"
-        end_time_utc = end_time.isoformat() + "Z"
+        
+        
 
         url = "https://backend.framewise.ai/api/py/setup-meeting"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         payload = {
             "meeting_id": meeting_id,
             "api_key": self.api_key,
-            "start_time_utc": start_time_utc,
-            "end_time_utc": end_time_utc,
         }
+
+        if start_time is not None:
+            start_time_utc = start_time.isoformat() + "Z"
+            payload['start_time_utc'] = start_time_utc
+
+        if end_time is not None:
+            end_time_utc = end_time.isoformat() + "Z"
+            payload['end_time_utc'] = end_time_utc
 
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
