@@ -2,6 +2,21 @@
 
 A Python client library for building interactive applications with the Framewise API.
 
+## Table of Contents
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Core Features](#core-features)
+  - [Authentication](#authentication)
+  - [Event Handlers](#event-handlers)
+  - [Sending Responses](#sending-responses)
+  - [Multiple-Choice Questions (MCQs)](#multiple-choice-questions-mcqs)
+  - [Custom UI Elements](#custom-ui-elements)
+- [Advanced Features](#advanced-features)
+  - [Meeting Management](#meeting-management)
+  - [Logging Configuration](#logging-configuration)
+- [API Reference](#api-reference)
+- [License](#license)
+
 ## Installation
 
 Install the package using pip:
@@ -10,9 +25,7 @@ Install the package using pip:
 pip install framewise-meet-client
 ```
 
-## Getting Started
-
-### Basic Usage
+## Quick Start
 
 ```python
 from framewise_meet_client import App
@@ -21,90 +34,96 @@ from framewise_meet_client.models.messages import TranscriptMessage
 # Create an app instance with your API key
 app = App(api_key="your_api_key_here")
 
-# Join a specific meeting
-app.join_meeting(meeting_id="your_meeting_id")
+# Join a meeting
+app.join_meeting("your_meeting_id")
 
-# Define an event handler for transcripts
+# Handle transcript events
 @app.on_transcript()
 def handle_transcript(message: TranscriptMessage):
-    transcript = message.content.text
-    is_final = message.content.is_final
-    print(f"Received: {transcript}")
-
-# Define an event handler for final transcripts using invoke
-@app.invoke
-def process_command(message: TranscriptMessage):
-    command = message.content.text
-    print(f"Processing command: {command}")
-    
-    # Send a response
-    app.send_generated_text(f"I received: {command}")
+    print(f"Received transcript: {message.content.text}")
+    if message.content.is_final:
+        print("This is a final transcript")
 
 # Run the app
 if __name__ == "__main__":
     app.run()
 ```
 
-## Features
+## Core Features
 
 ### Authentication
 
 The client supports API key authentication:
 
 ```python
+# Initialize with API key
 app = App(api_key="your_api_key_here")
+
+# Or set API key later
+app = App()
+app.set_api_key("your_api_key_here")
 ```
-
-### Message Types
-
-The client supports several message types:
-
-1. **Transcripts**: Real-time speech transcriptions
-2. **Join/Exit Events**: Notifications when users join or leave
-3. **MCQ Questions**: Multiple-choice questions
-4. **Custom UI Elements**: Flexible UI components
 
 ### Event Handlers
 
-Register handlers for different event types:
+Register handlers for different event types using the decorator pattern:
+
+#### Typed Event Handlers
 
 ```python
-# Using typed method
+# Transcript events
 @app.on_transcript()
 def handle_transcript(message: TranscriptMessage):
     print(f"Transcript: {message.content.text}")
 
-# Using general method
-@app.on("mcq_selection")
-def handle_mcq_selection(message: MCQSelectionMessage):
-    print(f"Selected: {message.content.selectedOption}")
+# Join events
+@app.on_join()
+def handle_join(message: JoinMessage):
+    print(f"User joined: {message.content.user.name}")
+
+# Exit events
+@app.on_exit()
+def handle_exit(message: ExitMessage):
+    print(f"User left: {message.content.user.name}")
+
+# MCQ selection events
+@app.on_mcq_selection()
+def handle_selection(message: MCQSelectionMessage):
+    print(f"Selected option: {message.content.selectedOption}")
+```
+
+#### Generic Event Handlers
+
+```python
+# Using string event type
+@app.on("transcript")
+def handle_any_transcript(message):
+    print(f"Generic handler: {message.content.text}")
 
 # Using invoke for final transcripts
 @app.invoke
-def process_final(message: TranscriptMessage):
-    print(f"Final transcript: {message.content.text}")
+def process_command(message: TranscriptMessage):
+    if message.content.is_final:
+        print(f"Processing command: {message.content.text}")
+        app.send_text(f"Received command: {message.content.text}")
 ```
 
 ### Sending Responses
 
-Send various types of responses:
+The client provides several methods to send different types of content:
 
 ```python
-# Send text
-app.send_text("Hello there!")
+# Send plain text
+app.send_text("Hello world!")
 
-# Send generated text (with streaming support)
-app.send_generated_text("Processing your request...", is_generation_end=False)
-app.send_generated_text("Here's the answer!", is_generation_end=True)
+# Send generated text with streaming support
+app.send_generated_text("Starting to generate content...", is_generation_end=False)
+app.send_generated_text("Here's the complete response!", is_generation_end=True)
 
-# Send an MCQ question
-app.send_mcq(
-    question="How would you like to proceed?",
-    options=["Continue", "Start over", "Exit"],
-    correct_index=0
-)
+# Send notifications with different levels
+app.send_notification("Operation completed", level="info", duration=5000)
 
-# Send a custom UI element
+# Send custom UI elements
 app.send_custom_ui_element("card", {
     "title": "Important Information",
     "content": "This is a custom card element",
@@ -112,159 +131,103 @@ app.send_custom_ui_element("card", {
 })
 ```
 
-## Multiple-Choice Questions (MCQs)
+### Multiple-Choice Questions (MCQs)
 
-The Framewise client provides robust support for creating and handling multiple-choice questions:
-
-### Sending MCQs
-
-There are two ways to send MCQs to the user:
-
-#### 1. Traditional MCQs
+Create interactive polls and quizzes:
 
 ```python
-# Send a standard MCQ
-app.send_mcq(
-    question="What's your favorite color?",
-    options=["Red", "Blue", "Green", "Yellow"],
-    correct_index=0  # Optional - marks the first option as "correct"
-)
-```
-
-#### 2. Enhanced MCQs via Custom UI
-
-```python
-# Send an MCQ with a unique ID for tracking responses
-import uuid
-question_id = str(uuid.uuid4())
-
+# Send an MCQ question
 app.send_mcq_question(
-    question_id=question_id,
-    question="How would you rate this service?",
-    options=["Excellent", "Good", "Fair", "Poor"]
+    question_id="quiz-1",
+    question="What is the capital of France?",
+    options=["Paris", "London", "Berlin", "Madrid"]
 )
-```
 
-### Handling MCQ Responses
-
-When a user selects an option from an MCQ, you'll receive an `mcq_selection` event:
-
-```python
-@app.on_mcq_selection
-def handle_mcq_selection(message: MCQSelectionMessage):
-    # Get the selected option text
-    selected_option = message.content.selectedOption
-    
-    # Get the selected option index (0-based)
-    selected_index = message.content.selectedIndex
-    
-    # Get the question ID (if provided in the original MCQ)
+# Handle MCQ responses
+@app.on_mcq_selection()
+def handle_mcq_response(message):
     question_id = message.content.questionId
+    selected_option = message.content.selectedOption
+    selected_index = message.content.selectedIndex
+    user = message.content.user
     
-    print(f"User selected '{selected_option}' (index: {selected_index}) for question {question_id}")
+    print(f"User {user.name} selected {selected_option} (index: {selected_index}) for question {question_id}")
     
-    # Respond based on the selection
-    if selected_option == "Excellent":
-        app.send_text("Thank you for your positive feedback!")
+    # Send acknowledgment
+    if selected_option == "Paris":
+        app.send_text("Correct!")
     else:
-        app.send_text(f"You selected: {selected_option}. We appreciate your feedback.")
+        app.send_text("Incorrect. The answer is Paris.")
 ```
 
-### MCQ Message Format
+### Custom UI Elements
 
-When receiving an MCQ selection, the message structure is:
-
-```python
-{
-    "type": "mcq_selection",
-    "content": {
-        "selectedOption": "Option text that was selected",
-        "selectedIndex": 2,  # Zero-based index of the selected option
-        "questionId": "unique-id-if-provided"  # Only present if you used send_mcq_question
-    }
-}
-```
-
-This structure is automatically parsed into the `MCQSelectionMessage` object when using the `@app.on_mcq_selection` decorator.
-
-## Custom UI Elements
-
-The Framewise client supports custom UI elements with direct subtype handling:
-
-### Handling UI Element Types
-
-Each custom UI element has a specific type that you can handle directly:
+Display custom interface components:
 
 ```python
-# Handle "mcq_question" UI elements directly
-@app.on_ui_type("mcq_question")
-def handle_mcq_question(message: CustomUIElementMessage):
+# Send a custom card element
+app.send_custom_ui_element("card", {
+    "title": "Weather Forecast",
+    "content": "Today will be sunny with a high of 75°F",
+    "image": "https://example.com/weather.png",
+    "buttons": ["View Details", "Dismiss"]
+})
+
+# Handle UI element interactions
+@app.on_custom_ui()
+def handle_ui_interaction(message):
+    ui_type = message.content.uiType
+    action = message.content.action
     data = message.content.data
-    selected_option = data.get("selectedOption")
-    question_id = data.get("id")
-    print(f"MCQ response: {selected_option} for question {question_id}")
-    app.send_generated_text(f"You chose: {selected_option}")
-
-# Handle "info_card" UI elements
-@app.on_ui_type("info_card") 
-def handle_info_card(message: CustomUIElementMessage):
-    data = message.content.data
-    action = data.get("action")
-    print(f"Info card action: {action}")
-    app.send_generated_text(f"Action taken: {action}")
+    
+    print(f"UI interaction: type={ui_type}, action={action}, data={data}")
 ```
 
-### Generic Handler vs Specific Handlers
-
-You can use both specific handlers for known UI types and a generic fallback:
+#### Specific UI Element Handlers
 
 ```python
-# Specific handler
-@app.on_ui_type("poll")
-def handle_poll(message: CustomUIElementMessage):
-    # Handle poll responses
-    pass
-
-# Generic handler for any other UI types
-@app.on_custom_ui_response()
-def handle_any_ui(message: CustomUIElementMessage):
-    ui_type = message.content.type
-    if (ui_type not in ["mcq_question"]):
-        # Handle unknown UI types
-        pass
+# Handle specific UI element types
+@app.on_custom_ui(ui_type="card")
+def handle_card_interaction(message):
+    print(f"Card interaction: {message.content.action}")
+    
+    if message.content.action == "button_click" and message.content.data["button"] == "View Details":
+        app.send_text("Showing detailed weather forecast...")
 ```
 
 ## Advanced Features
 
-### Meeting Creation
+### Meeting Management
 
-Create meetings programmatically:
+Create and manage meetings programmatically:
 
 ```python
-app = App(api_key="your_api_key_here")
-
-# Create a meeting
+# Create a new meeting
 meeting_data = app.create_meeting(
-    meeting_id="new_meeting_123",
-    start_time_utc="2023-06-01T15:00:00Z",
-    end_time_utc="2023-06-01T16:00:00Z"
+    meeting_id="team_meeting_123",
+    start_time_utc="2023-08-15T14:00:00Z",
+    end_time_utc="2023-08-15T15:00:00Z"
 )
 
-# Join the created meeting
+# Join the newly created meeting
 app.join_meeting(meeting_id=meeting_data["meeting_id"])
 ```
 
-### Logging
+### Logging Configuration
 
-Configure logging level when running the app:
+Configure logging when running the app:
 
 ```python
-app.run(log_level="DEBUG")  # Other options: INFO, WARNING, ERROR, CRITICAL
+# Set logging level
+app.run(log_level="DEBUG")  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# Configure auto-reconnect behavior
+app.run(auto_reconnect=True, reconnect_delay=5)
 ```
 
-## Documentation
+## API Reference
 
-For complete documentation, visit [https://framewise-ai.github.io/framewise_meet_client/](https://framewise-ai.github.io/framewise_meet_client/)
+For complete API documentation, visit [https://docs.framewise.ai/docs/](https://docs.framewise.ai/docs/)
 
 ## License
 
