@@ -1,6 +1,7 @@
 from typing import Dict, Any, Callable
 from .base_handler import EventHandler
-from ..models.messages import JoinMessage
+# Update import to use inbound module
+from ..models.inbound import JoinMessage
 
 
 class JoinHandler(EventHandler[JoinMessage]):

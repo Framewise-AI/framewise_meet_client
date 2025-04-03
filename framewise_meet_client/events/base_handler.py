@@ -1,83 +1,42 @@
+from typing import Any, Callable, Dict, Generic, TypeVar, Union, Optional, Type
+from ..models.inbound import BaseMessage
 import logging
-from typing import Dict, Any, Callable, TypeVar, Generic, Type, Union
-
-from ..models.messages import BaseMessage
-from pydantic import ValidationError
-
-T = TypeVar("T", bound=BaseMessage)
+from ..exceptions import InvalidMessageTypeError
 
 logger = logging.getLogger(__name__)
 
+# TypeVar for the message type
+T = TypeVar("T", bound=BaseMessage)
 
 class EventHandler(Generic[T]):
-    """Base class for event handlers."""
-
-    event_type: str = ""
-    message_class: Type[BaseMessage] = None
-
-    def __init__(self, dispatcher):
-        """Initialize the event handler.
-
-        Args:
-            dispatcher: Event dispatcher instance
-        """
-        self.dispatcher = dispatcher
-
-    def register(
-        self, handler_func: Callable[[T], Any]
-    ) -> Callable[[Union[Dict[str, Any], T]], Any]:
-        """Register a handler function for this event type.
-
+    """Base class for all event handlers."""
+    
+    event_type: str = None
+    message_class = None
+    
+    def __init__(self):
+        """Initialize the event handler."""
+        if self.event_type is None:
+            raise ValueError(f"Event type not specified for {self.__class__.__name__}")
+        
+    def register(self, handler_func: Callable[[T], Any]) -> Callable[[T], Any]:
+        """Register a handler function with this event type.
+        
         Args:
             handler_func: Function that takes a strongly-typed message object
-
+        
         Returns:
-            The original handler function for chaining
+            Wrapped function that handles strongly-typed message objects
         """
-
-        def wrapper(data):
-            # Always convert data to proper message class
-            if isinstance(data, dict) and self.message_class is not None:
-                try:
-                    converted = self.message_class.model_validate(data)
-                    return handler_func(converted)
-                except Exception as e:
-                    logger.error(
-                        f"Failed to convert dict to {self.message_class.__name__}: {e}"
-                    )
-                    # Try to create an empty instance as fallback with minimal data
-                    try:
-                        if "type" in data:
-                            minimal_data = {"type": data["type"], "content": {}}
-                            if "content" in data and isinstance(data["content"], dict):
-                                minimal_data["content"] = data["content"]
-                            converted = self.message_class.model_validate(minimal_data)
-                            logger.warning(
-                                f"Created minimal {self.message_class.__name__} instance"
-                            )
-                            return handler_func(converted)
-                    except Exception as inner_e:
-                        logger.error(f"Could not create minimal instance: {inner_e}")
-                        raise ValueError(
-                            f"Cannot handle event: failed to convert to {self.message_class.__name__}"
-                        )
-            elif isinstance(data, self.message_class):
-                # Already the correct type
-                return handler_func(data)
-            else:
-                # Unknown data type
-                logger.error(
-                    f"Unexpected data type for {self.event_type}: {type(data)}"
-                )
-                raise TypeError(
-                    f"Expected {self.message_class.__name__}, got {type(data)}"
-                )
-
-        logger.info(
-            f"Registered handler for {self.event_type} events using {self.message_class.__name__}"
-        )
-        self.dispatcher.register_handler(self.event_type)(wrapper)
-        return handler_func
+        def wrapped_handler(data: T) -> Any:
+            # Verify the data is of the expected type
+            if not isinstance(data, self.message_class):
+                raise InvalidMessageTypeError(f"Expected {self.message_class.__name__}, got {type(data).__name__}")
+            
+            # Call the handler with the typed data
+            return handler_func(data)
+        
+        return wrapped_handler
 
 
 def register_event_handler(app, event_type: str, handler_func: Callable):

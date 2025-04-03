@@ -1,10 +1,11 @@
 from typing import Dict, Any, Callable
 from .base_handler import EventHandler
-from ..models.messages import TranscriptMessage
+# Update import to use inbound module
+from ..models.inbound import InvokeMessage
 
 
-class InvokeHandler(EventHandler[TranscriptMessage]):
-    """Handler for invoke events (triggered by final transcripts)."""
+class InvokeHandler(EventHandler[InvokeMessage]):
+    """Handler for invoke events."""
 
     event_type = "invoke"
-    message_class = TranscriptMessage
+    message_class = InvokeMessage

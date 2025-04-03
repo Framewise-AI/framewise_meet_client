@@ -1,6 +1,7 @@
 from typing import Dict, Any, Callable
 from .base_handler import EventHandler
-from ..models.messages import ExitMessage
+# Update import to use inbound module
+from ..models.inbound import ExitMessage
 
 
 class ExitHandler(EventHandler[ExitMessage]):

@@ -2,15 +2,14 @@ import asyncio
 import logging
 import signal
 from typing import Dict, Any, Type, Optional, Union
+from pydantic import BaseModel  # Add this import
 
 from .errors import ConnectionError
-from .models.messages import (
-    BaseMessage,
-    MessagePayload,
+from .models.inbound import (
     JoinMessage,
     ExitMessage,
     TranscriptMessage,
-    CustomUIElementMessage,
+    CustomUIElementResponse,
     MCQSelectionMessage,
     ConnectionRejectedMessage,
 )
@@ -28,7 +27,7 @@ class AppRunner:
         "on_join": JoinMessage,
         "on_exit": ExitMessage,
         "transcript": TranscriptMessage,
-        "custom_ui_element_response": CustomUIElementMessage,
+        "custom_ui_element_response": CustomUIElementResponse,  # Fix class name
         "mcq_selection": MCQSelectionMessage,
         "connection_rejected": ConnectionRejectedMessage,
     }
@@ -51,7 +50,7 @@ class AppRunner:
 
     def _convert_message(
         self, message_type: str, data: Dict[str, Any]
-    ) -> Optional[BaseMessage]:
+    ) -> Optional[BaseModel]:  # Change return type to BaseModel
         """Convert raw message data to appropriate message object.
 
         Args:
@@ -140,19 +139,17 @@ class AppRunner:
                             INVOKE_EVENT, converted or data
                         )
 
-                # Handle UI subtypes
+                # Handle UI subtypes and custom UI element responses
                 elif message_type == "custom_ui_element_response":
                     ui_subtype = None
-                    if converted and isinstance(converted, CustomUIElementMessage):
-                        ui_subtype = converted.content.type
-                    elif isinstance(data, dict):
+                    if isinstance(data, dict):
                         try:
                             ui_subtype = data.get("content", {}).get("type")
                         except:
                             pass
 
                     if ui_subtype:
-                        logger.debug(f"Dispatching to UI subtype: {ui_subtype}")
+                        logger.debug(f"Dispatching to UI element type: {ui_subtype}")
                         await self.event_dispatcher.dispatch(
                             ui_subtype, converted or data
                         )

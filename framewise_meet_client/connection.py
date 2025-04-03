@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import websockets
+import ssl
 from typing import Optional, Dict, Any
 
 from .errors import ConnectionError, AuthenticationError
@@ -32,7 +33,9 @@ class WebSocketConnection:
 
     async def connect(self) -> None:
         """Connect to the WebSocket server."""
-        url = f"ws://{self.host}:{self.port}/listen/{self.meeting_id}"
+        # Determine protocol based on port
+        protocol = "wss" if self.port == 443 else "ws"
+        url = f"{protocol}://{self.host}:{self.port}/listen/{self.meeting_id}"
 
         # Add API key to headers if provided
         headers = {}
@@ -41,7 +44,16 @@ class WebSocketConnection:
             logger.debug("Added API key to connection headers")
 
         try:
-            self.websocket = await websockets.connect(url)
+            # For secure connections, use the default SSL context which verifies certificates
+            ssl_context = None
+            if protocol == "wss":
+                ssl_context = ssl.create_default_context()
+            
+            self.websocket = await websockets.connect(
+                url, 
+                ssl=ssl_context
+            )
+            
             self.connected = True
             logger.info(f"Connected to server at {url}")
 

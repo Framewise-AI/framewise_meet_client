@@ -7,13 +7,6 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 
-class BaseResponse(BaseModel):
-    """Base class for all responses sent to the server."""
-
-    message_id: str = Field(..., description="ID of the message")
-    meeting_id: str = Field(..., description="ID of the meeting")
-    timestamp: str = Field(..., description="Timestamp of the response")
-
 
 class MCQOption(BaseModel):
     """Option for a multiple-choice question."""
@@ -95,7 +88,7 @@ class CustomUIContent(BaseModel):
     )
 
 
-class GeneratedTextMessage(BaseResponse):
+class GeneratedTextMessage(BaseModel):
     """Response with generated text."""
 
     type: Literal["generated_text"] = "generated_text"
@@ -104,21 +97,21 @@ class GeneratedTextMessage(BaseResponse):
     )
 
 
-class MCQMessage(BaseResponse):
+class MCQMessage(BaseModel):
     """Response with a multiple-choice question."""
 
     type: Literal["mcq"] = "mcq"
     content: MCQContent = Field(..., description="Content of the MCQ")
 
 
-class CustomUIMessage(BaseResponse):
+class CustomUIMessage(BaseModel):
     """Response with custom UI elements."""
 
     type: Literal["custom_ui"] = "custom_ui"
     content: CustomUIContent = Field(..., description="Content of the custom UI")
 
 
-class ErrorResponse(BaseResponse):
+class ErrorResponse(BaseModel):
     """Error response."""
 
     type: Literal["error"] = "error"
@@ -148,10 +141,11 @@ class MCQQuestionElement(BaseModel):
 class NotificationData(BaseModel):
     """Data for a notification UI element."""
 
-    message: str = Field(..., description="Notification message")
-    level: str = Field(
-        "info", description="Notification level (info, warning, error, success)"
+    id: str = Field(..., description="Notification identifier")
+    level: Literal["info", "warning", "error", "success"] = Field(
+        "info", description="Notification level"
     )
+    message: str = Field(..., description="Notification message text")
     duration: int = Field(8000, description="Duration in milliseconds")
 
 
@@ -162,10 +156,162 @@ class NotificationElement(BaseModel):
     data: NotificationData = Field(..., description="Notification data")
 
 
-class CustomUIElementMessage(BaseResponse):
+class PlacesAutocompleteData(BaseModel):
+    """Data for a places autocomplete UI element.
+
+    This element allows users to search for and select geographic locations using
+    an autocomplete feature, typically powered by a mapping service.
+    """
+
+    id: str = Field(..., description="Element identifier")
+    text: str = Field(..., description="Prompt text")
+    placeholder: Optional[str] = Field("Enter location", description="Placeholder text")
+
+
+class PlacesAutocompleteElement(BaseModel):
+    """Places autocomplete UI element.
+
+    Container for the places autocomplete data that defines the element type.
+    """
+
+    type: Literal["places_autocomplete"] = "places_autocomplete"
+    data: PlacesAutocompleteData = Field(..., description="Places autocomplete data")
+
+
+class UploadFileData(BaseModel):
+    """Data for a file upload UI element.
+
+    This element provides a file picker interface for users to upload files,
+    with optional restrictions on file types and sizes.
+    """
+
+    id: str = Field(..., description="Element identifier")
+    text: str = Field(..., description="Prompt text")
+    allowed_types: Optional[List[str]] = Field(None, description="Allowed file types")
+    maxSizeMB: Optional[int] = Field(None, description="Maximum file size in MB")
+
+
+class UploadFileElement(BaseModel):
+    """File upload UI element.
+
+    Container for the file upload data that defines the element type.
+    """
+
+    type: Literal["upload_file"] = "upload_file"
+    data: UploadFileData = Field(..., description="File upload data")
+
+
+class TextInputData(BaseModel):
+    """Data for a text input UI element.
+
+    This element allows users to input text, with options for single or multiline input.
+    """
+
+    id: str = Field(..., description="Element identifier")
+    prompt: str = Field(..., description="Prompt text")
+    placeholder: Optional[str] = Field("", description="Placeholder text")
+    multiline: Optional[bool] = Field(
+        False, description="Whether to use multiline input"
+    )
+
+
+class TextInputElement(BaseModel):
+    """Text input UI element.
+
+    Container for the text input data that defines the element type.
+    """
+
+    type: Literal["textinput"] = "textinput"
+    data: TextInputData = Field(..., description="Text input data")
+
+
+class ConsentFormData(BaseModel):
+    """Data for a consent form UI element.
+
+    This element presents users with a consent form that requires confirmation,
+    typically used for terms of service or privacy policy acceptance.
+    """
+
+    id: str = Field(..., description="Element identifier")
+    text: str = Field(..., description="Consent form text")
+    required: Optional[bool] = Field(True, description="Whether consent is required")
+    checkboxLabel: Optional[str] = Field(
+        "I agree", description="Label for the checkbox"
+    )
+    submitLabel: Optional[str] = Field(
+        "Submit", description="Label for the submit button"
+    )
+
+
+class ConsentFormElement(BaseModel):
+    """Consent form UI element.
+
+    Container for the consent form data that defines the element type.
+    """
+
+    type: Literal["consent_form"] = "consent_form"
+    data: ConsentFormData = Field(..., description="Consent form data")
+
+
+class CalendlyData(BaseModel):
+    """Data for a Calendly scheduling UI element.
+
+    This element embeds a Calendly scheduling interface for booking appointments or meetings.
+    """
+
+    id: str = Field(..., description="Element identifier")
+    url: str = Field(..., description="Calendly URL")
+    title: Optional[str] = Field("Schedule a meeting", description="Title text")
+    subtitle: Optional[str] = Field(None, description="Subtitle text")
+
+
+class CalendlyElement(BaseModel):
+    """Calendly scheduling UI element.
+
+    Container for the Calendly scheduling data that defines the element type.
+    """
+
+    type: Literal["calendly"] = "calendly"
+    data: CalendlyData = Field(..., description="Calendly data")
+
+
+# Update the CustomUIElementMessage to include all the new element types
+class CustomUIElementMessage(BaseModel):
     """Message for sending a custom UI element."""
 
     type: Literal["custom_ui_element"] = "custom_ui_element"
-    content: Union[MCQQuestionElement, NotificationElement, CustomUIElement] = Field(
-        ..., description="Custom UI element"
+    content: Union[
+        MCQQuestionElement,
+        NotificationElement,
+        PlacesAutocompleteElement,
+        UploadFileElement,
+        TextInputElement,
+        ConsentFormElement,
+        CalendlyElement,
+        CustomUIElement,
+    ] = Field(..., description="Custom UI element")
+
+
+# Add response handler class for custom UI element responses
+class UIElementResponseHandler(BaseModel):
+    """Base class for handling custom UI element responses.
+
+    This class defines the structure for handlers that respond to UI element interactions.
+    """
+
+    type: Literal["ui_element_response_handler"] = "ui_element_response_handler"
+    element_type: str = Field(..., description="Type of UI element to handle")
+    element_id: str = Field(..., description="ID of the UI element to handle")
+
+
+class ElementResponseSubscription(BaseModel):
+    """Response subscribing to custom UI element responses.
+
+    This class defines which element types to listen for and receive responses from.
+    """
+
+    type: Literal["subscribe_element_responses"] = "subscribe_element_responses"
+    element_types: List[str] = Field(
+        ..., description="Types of elements to subscribe to"
     )
+    handler_id: str = Field(..., description="ID of the handler for responses")

@@ -1,8 +1,9 @@
 import asyncio
 from typing import Any, Callable, Dict, List, Union
 import logging
-from .models.inbound import BaseMessage
-from .exceptions import InvalidMessageTypeError
+import traceback
+from ..models.inbound import BaseMessage
+from ..exceptions import InvalidMessageTypeError
 
 logger = logging.getLogger(__name__)
 
@@ -26,21 +27,15 @@ class EventDispatcher:
         self._handlers[event_type].append(handler)
         logger.debug(f"Registered handler for event type {event_type}")
     
-    # Alias for backward compatibility
-    register_handler = register
-    
-    async def dispatch(self, event_type: str, data: Any) -> None:
+    async def dispatch(self, event_type: str, data: BaseMessage) -> None:
         """Dispatch an event to all registered handlers.
         
         Args:
             event_type: The event type to dispatch
             data: The message data to pass to the handlers
         """
-        # We need to check if data is a subclass of BaseMessage, not strictly BaseMessage
-        from .models.inbound import BaseMessage
         if not isinstance(data, BaseMessage):
-            logger.error(f"Cannot dispatch event: expected a subclass of BaseMessage, got {type(data).__name__}")
-            return
+            raise InvalidMessageTypeError(expected_type="BaseMessage", actual_type=type(data).__name__)
             
         handlers = self._handlers.get(event_type, [])
         if not handlers:
@@ -53,13 +48,6 @@ class EventDispatcher:
             try:
                 result = handler(data)
                 if asyncio.iscoroutine(result):
-                    try:
-                        await result
-                    except Exception as e:
-                        logger.error(f"Error in async handler for event {event_type}: {e}")
-                        logger.error(traceback.format_exc())
-            
+                    await result
             except Exception as e:
                 logger.error(f"Error in handler for event {event_type}: {e}")
-                import traceback
-                logger.error(traceback.format_exc())

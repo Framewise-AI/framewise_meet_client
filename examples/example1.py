@@ -1,12 +1,12 @@
 import logging
 import uuid
 from framewise_meet_client.app import App
-from framewise_meet_client.models.messages import (
+from framewise_meet_client.models.inbound import (
     TranscriptMessage,
     MCQSelectionMessage,
     JoinMessage,
     ExitMessage,
-    CustomUIElementMessage,
+    CustomUIElementResponse as CustomUIElementMessage,
     ConnectionRejectedMessage,
 )
 
@@ -14,7 +14,8 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
-app = App(api_key="1234567")
+# Fix: Remove the use_ssl parameter which isn't supported
+app = App(api_key="1234567", host='backendapi.framewise.ai', port=443)
 
 app.create_meeting("1234")
 app.join_meeting(meeting_id="1234")
@@ -28,7 +29,7 @@ def on_transcript(message: TranscriptMessage):
 
 
 @app.invoke
-def process_final_transcript(message: TranscriptMxessage):
+def process_final_transcript(message: TranscriptMessage):
     transcript = message.content.text
     print(f"Processing final transcript with invoke: {transcript}")
 
