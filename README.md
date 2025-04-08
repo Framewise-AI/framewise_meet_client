@@ -29,7 +29,7 @@ pip install framewise-meet-client
 
 ```python
 from framewise_meet_client import App
-from framewise_meet_client.models.messages import TranscriptMessage
+from framewise_meet_client.models.inbound import TranscriptMessage
 
 # Create an app instance with your API key
 app = App(api_key="your_api_key_here")

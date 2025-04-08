@@ -17,7 +17,7 @@ logging.basicConfig(
 app = App(api_key="1234567", host='backendapi.framewise.ai', port=443)
 
 app.create_meeting("1234")
-app.join_meeting(meeting_id="46234")
+app.join_meeting(meeting_id="test")
 
 
 @app.on_transcript()
