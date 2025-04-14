@@ -2,6 +2,8 @@ import asyncio
 import logging
 from typing import Dict, Any, List, Optional, Callable, Type, TypeVar, cast, Union
 from enum import Enum
+import json
+import websockets
 
 from .connection import WebSocketConnection
 from .event_handler import EventDispatcher
@@ -114,7 +116,7 @@ class App:
     }
 
     def __init__(
-        self, api_key: Optional[str] = None, host: str = "localhost", port: int = 8000
+        self, api_key: Optional[str] = None, host: str = "backendapi.framewise.ai", port: int = 443
     ):
         """Initialize the app with connection details.
 
@@ -135,6 +137,32 @@ class App:
         self.running = False
         self.loop = None
         self._main_task = None
+
+    async def await_meeting(self, ws_url=None, timeout=None):
+        """Wait for a WebSocket message containing meeting details and join automatically.
+        
+        Args:
+            ws_url: Optional WebSocket URL to connect to.
+                   If not provided, uses host/port/api_key from the App instance.
+            timeout: Optional timeout in seconds. None means wait indefinitely.
+            
+        Returns:
+            The meeting_id that was joined
+        """
+        # Use the meeting_discovery module for the actual WebSocket connection
+        meeting_id = await discover_meeting(
+            api_key=self.api_key,
+            host=self.host,
+            port=self.port,
+            ws_url=ws_url,
+            timeout=timeout
+        )
+        
+        # If a meeting ID was discovered, automatically join it
+        if meeting_id:
+            self.join_meeting(meeting_id)
+        
+        return meeting_id
 
     def join_meeting(self, meeting_id):
         self.meeting_id = meeting_id

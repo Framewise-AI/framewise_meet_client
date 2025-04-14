@@ -216,3 +216,28 @@ class AppRunner:
             # Close the event loop
             self.app.loop.close()
             self.app.loop = None
+
+    async def run_with_await_meeting(self, app, ws_url=None, timeout=None):
+        """Run the application with automatic meeting discovery."""
+        self.app = app
+        
+        try:
+            meeting_id = await app.await_meeting(ws_url=ws_url, timeout=timeout)
+            
+            if meeting_id:
+                app.running = True
+                await self._main_loop()
+            else:
+                logger.warning("No meeting joined, application won't start")
+                
+        except KeyboardInterrupt:
+            logger.info("Application interrupted by user")
+        except Exception as e:
+            logger.error(f"Error in run_with_await_meeting: {str(e)}")
+        finally:
+            app.running = False
+            # Ensure connection is closed if it was opened
+            if self.connection and self.connection.connected:
+                await self.connection.disconnect()
+            logger.info("Application shutdown complete")
+
