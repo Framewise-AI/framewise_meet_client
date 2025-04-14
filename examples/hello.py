@@ -17,7 +17,6 @@ logging.basicConfig(
 app = App(api_key="1234567", host='backendapi.framewise.ai', port=443)
 
 app.create_meeting("1234")
-app.join_meeting(meeting_id="test")
 
 
 @app.on_transcript()
@@ -151,4 +150,4 @@ def on_reject(message):
 
 
 if __name__ == "__main__":
-    app.run(log_level="DEBUG")
+    app.run(log_level="DEBUG",mode="discover")

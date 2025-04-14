@@ -50,12 +50,8 @@ connection_state = {
 }
 
 # Use a fixed meeting ID - don't create, just join
-MEETING_ID = "46234"
-connection_state["current_meeting_id"] = MEETING_ID
 
 # Join existing meeting instead of creating a new one
-logger.info(f"Joining existing meeting with ID: {MEETING_ID}")
-app.join_meeting(meeting_id=MEETING_ID)
 
 
 @app.on_transcript()
@@ -849,12 +845,11 @@ def dump_message_structure(message, prefix=""):
 
 if __name__ == "__main__":
     logger.info("=== STARTING UI ELEMENT DEMO ===")
-    logger.info(f"Joined meeting {MEETING_ID}, waiting for connection...")
     logger.info("Say 'show ui elements' to see all UI elements, or select from the menu")
     
     # Run the app with debug logging enabled
     try:
-        app.run(log_level="DEBUG")
+        app.run(log_level="DEBUG",mode="discover")
     except KeyboardInterrupt:
         logger.info("Demo terminated by user")
     except Exception as e:

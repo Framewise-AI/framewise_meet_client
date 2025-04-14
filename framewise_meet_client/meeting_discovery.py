@@ -7,15 +7,15 @@ from .errors import AuthenticationError
 
 logger = logging.getLogger(__name__)
 
-async def await_meeting(api_key: str, host: str, port: int = 443, ws_url: Optional[str] = None, timeout: Optional[int] = None) -> Optional[str]:
+async def await_meeting(api_key: str, timeout: Optional[int] = None) -> Optional[str]:
     """Wait for a WebSocket message containing meeting details.
     
     Args:
         api_key: API key for authentication
-        host: Server hostname
-        port: Server port
+        host: Server hostname (ignored - using hardcoded backend.framewise.ai for agent connector)
+        port: Server port (ignored - using default port 443)
         ws_url: Optional WebSocket URL to connect to.
-               If not provided, constructs a URL based on host/port/api_key.
+               If not provided, constructs a URL using the hardcoded domain.
         timeout: Optional timeout in seconds. None means wait indefinitely.
         
     Returns:
@@ -24,11 +24,10 @@ async def await_meeting(api_key: str, host: str, port: int = 443, ws_url: Option
     if not api_key:
         raise AuthenticationError("API key is required to await meetings")
         
-    # Construct WebSocket URL if not provided
-    if not ws_url:
-        ws_url = f"wss://{host}/ws/api_key/{api_key}"
+    # Always use backend.framewise.ai for agent connector
+    ws_url = f"wss://backend.framewise.ai/ws/api_key/{api_key}"
         
-    logger.info(f"Connecting to WebSocket at {ws_url} and awaiting meeting details")
+    logger.info(f"Connecting to agent connector at {ws_url}")
     
     reconnect_delay = 1
     max_reconnect_delay = 60
@@ -38,7 +37,7 @@ async def await_meeting(api_key: str, host: str, port: int = 443, ws_url: Option
         while not meeting_id:
             try:
                 async with websockets.connect(ws_url, ping_timeout=30) as websocket:
-                    logger.info("Successfully connected to WebSocket")
+                    logger.info("Successfully connected to agent connector WebSocket")
                     reconnect_delay = 1
                     
                     while True:

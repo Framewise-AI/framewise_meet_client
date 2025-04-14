@@ -4,12 +4,14 @@ from typing import Dict, Any, List, Optional, Callable, Type, TypeVar, cast, Uni
 from enum import Enum
 import json
 import websockets
+import time
 
 from .connection import WebSocketConnection
 from .event_handler import EventDispatcher
 from .errors import AppNotRunningError, ConnectionError, AuthenticationError
 from .messaging import MessageSender
 from pydantic import BaseModel
+from .meeting_discovery import await_meeting
 # Import inbound messages
 from .models.inbound import (
     BaseMessage,
@@ -138,23 +140,19 @@ class App:
         self.loop = None
         self._main_task = None
 
-    async def await_meeting(self, ws_url=None, timeout=None):
+    async def await_meeting(self, timeout=None):
         """Wait for a WebSocket message containing meeting details and join automatically.
         
         Args:
-            ws_url: Optional WebSocket URL to connect to.
-                   If not provided, uses host/port/api_key from the App instance.
             timeout: Optional timeout in seconds. None means wait indefinitely.
             
         Returns:
             The meeting_id that was joined
         """
         # Use the meeting_discovery module for the actual WebSocket connection
-        meeting_id = await discover_meeting(
+        # The host and port parameters are ignored in await_meeting as it now uses hardcoded values
+        meeting_id = await await_meeting(
             api_key=self.api_key,
-            host=self.host,
-            port=self.port,
-            ws_url=ws_url,
             timeout=timeout
         )
         
@@ -190,7 +188,7 @@ class App:
         # Check if this is an alias and get the main event type
         resolved_event_type = self._event_aliases.get(event_type, event_type)
         
-        if resolved_event_type != event_type:
+        if (resolved_event_type != event_type):
             logger.debug(f"Resolved event alias '{event_type}' to standard event type '{resolved_event_type}'")
         
         # Get the correct message type for this event
@@ -264,6 +262,7 @@ class App:
         auto_reconnect: bool = True,
         reconnect_delay: int = 5,
         log_level: str = None,
+        mode: str = "connect",  # Operation mode parameter
     ) -> None:
         """Run the application (blocking).
 
@@ -271,6 +270,7 @@ class App:
             auto_reconnect: Whether to automatically reconnect on disconnect
             reconnect_delay: Delay between reconnection attempts in seconds
             log_level: Optional log level to set (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            mode: Operation mode - "connect" to use existing meeting ID or "discover" to wait for meeting
         """
         if log_level:
             numeric_level = getattr(logging, log_level.upper(), None)
@@ -296,12 +296,82 @@ class App:
 
         self._register_default_handlers()
 
-        from .runner import AppRunner
-
-        runner = AppRunner(
-            self.connection, self.event_dispatcher, auto_reconnect, reconnect_delay
-        )
-        runner.run(self)
+        # Run in current thread with a new event loop
+        try:
+            # Create a new event loop if one doesn't already exist
+            loop = asyncio.get_event_loop()
+            if loop.is_closed():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            # If we're already in an event loop, raise an error
+            if loop.is_running():
+                logger.info("Event loop already running")
+                raise RuntimeError(
+                    "Cannot run the app synchronously inside an existing event loop."
+                )
+            
+            # Handle "discover" mode by first awaiting a meeting
+            if mode == "discover":
+                logger.info("Running in discover mode - waiting for meeting to be created...")
+                meeting_id = loop.run_until_complete(self.await_meeting())
+                if not meeting_id:
+                    logger.error("No meeting was discovered. Exiting.")
+                    return
+                logger.info(f"Meeting discovered: {meeting_id}")
+                # join_meeting is called inside await_meeting, no need to call it again
+            elif not self.connection:
+                raise ConnectionError("No active connection. Call join_meeting() first or use mode='discover'")
+            
+            # Connection is now established either through discover mode or join_meeting()
+            # Now process messages in a loop
+            self.running = True
+            while self.running:
+                try:
+                    if not self.connection or not self.connection.connected:
+                        loop.run_until_complete(self.connection.connect())
+                    
+                    # Process messages until disconnected
+                    while self.connection.connected and self.running:
+                        try:
+                            data = loop.run_until_complete(self.connection.receive())
+                            if data and "type" in data:
+                                loop.run_until_complete(self.event_dispatcher.dispatch(data["type"], data))
+                        except Exception as e:
+                            if self.running:
+                                logger.error(f"Error processing message: {str(e)}")
+                                time.sleep(0.1)  # Prevent tight loop on errors
+                            else:
+                                break
+                    
+                    # If we're here, connection was lost but app is still running
+                    if not self.running:
+                        break
+                    
+                    # Handle reconnection
+                    if auto_reconnect:
+                        logger.info(f"Connection lost. Reconnecting in {reconnect_delay} seconds...")
+                        time.sleep(reconnect_delay)
+                    else:
+                        logger.info("Connection lost. Auto-reconnect disabled.")
+                        break
+                    
+                except Exception as e:
+                    logger.error(f"Connection error: {str(e)}")
+                    if auto_reconnect:
+                        logger.info(f"Reconnecting in {reconnect_delay} seconds...")
+                        time.sleep(reconnect_delay)
+                    else:
+                        break
+                    
+        except KeyboardInterrupt:
+            logger.info("Application interrupted by user")
+        finally:
+            self.stop()
+            # Ensure connection is properly closed
+            if self.connection and self.connection.connected:
+                loop.run_until_complete(self.connection.disconnect())
+            logger.info("Application shutdown complete")
 
     # Update the default connection rejected handler with better error handling
     def _register_default_handlers(self):
