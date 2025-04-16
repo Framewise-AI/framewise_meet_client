@@ -2,9 +2,9 @@ import asyncio
 import logging
 import signal
 from typing import Dict, Any, Type, Optional, Union
-from pydantic import BaseModel  # Add this import
+from pydantic import BaseModel, ValidationError
 
-from .errors import ConnectionError
+from .errors import ConnectionError, AuthenticationError
 from .models.inbound import (
     JoinMessage,
     ExitMessage,
@@ -13,21 +13,20 @@ from .models.inbound import (
     MCQSelectionMessage,
     ConnectionRejectedMessage,
 )
-from pydantic import ValidationError
 from .events import INVOKE_EVENT, CUSTOM_UI_EVENT, EXIT_EVENT
 
 logger = logging.getLogger(__name__)
 
 
 class AppRunner:
-    """Manages the application's main event loop."""
+    """Manages the application's main event loop with improved reliability."""
 
     # Message type mapping
     _message_classes = {
         "on_join": JoinMessage,
         "on_exit": ExitMessage,
         "transcript": TranscriptMessage,
-        "custom_ui_element_response": CustomUIElementResponse,  # Fix class name
+        "custom_ui_element_response": CustomUIElementResponse,
         "mcq_selection": MCQSelectionMessage,
         "connection_rejected": ConnectionRejectedMessage,
     }
