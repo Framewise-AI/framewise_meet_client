@@ -1,3 +1,13 @@
+"""
+Authentication utilities for the Framewise Meet client.
+
+This module provides functions to authenticate API keys against the
+Framewise backend server to enable secure communication.
+
+Functions:
+    authenticate_api_key: Validate an API key via the remote validation endpoint.
+"""
+
 import logging
 import requests
 from typing import Optional, Dict, Any, Union

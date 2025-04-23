@@ -25,12 +25,35 @@ app = App(api_key="1234567", host='backendapi.framewise.ai', port=443)
 # Define the agent behavior
 @app.on_transcript()
 def on_transcript(message: TranscriptMessage):
+    """
+    Event handler for incoming transcript messages.
+    
+    This function is triggered whenever a transcript message is received from
+    the Framewise API, whether it's an interim or final transcript. It logs
+    the received transcript for monitoring purposes.
+    
+    Args:
+        message (TranscriptMessage): A message object containing the transcript text
+            and metadata such as whether it's a final transcript.
+    """
     transcript = message.content.text
     is_final = message.content.is_final
     logger.info(f"Received transcript: {transcript}")
 
 @app.invoke
 def process_final_transcript(message: TranscriptMessage):
+    """
+    Process final transcript messages for interactive responses.
+    
+    This function is decorated with @app.invoke, meaning it automatically receives
+    transcript messages that are marked as final (completed utterances). It analyzes
+    the transcript content and responds appropriately, either by starting a quiz or
+    providing information about available interactions.
+    
+    Args:
+        message (TranscriptMessage): A message object containing the final transcript 
+            text and related metadata.
+    """
     transcript = message.content.text
     logger.info(f"Processing final transcript with invoke: {transcript}")
 
@@ -43,6 +66,17 @@ def process_final_transcript(message: TranscriptMessage):
         app.send_generated_text("Ask me to start a quiz if you'd like to test your knowledge!", is_generation_end=True)
 
 def send_quiz_question():
+    """
+    Sends a multiple-choice question to the user.
+    
+    This function creates and sends a pre-defined quiz question about Python features.
+    It generates a unique UUID for the question ID to track responses correctly.
+    The question asks the user to identify which option is NOT a feature of Python,
+    with "Strong static typing" being the correct answer.
+    
+    Returns:
+        None: This function sends the MCQ question to the Framewise API but does not return a value.
+    """
     question_id = str(uuid.uuid4())
     app.send_mcq_question(
         question_id=question_id,
@@ -52,6 +86,24 @@ def send_quiz_question():
 
 @app.on("mcq_question")
 def on_mcq_question_ui(message):
+    """
+    Event handler for MCQ (Multiple Choice Question) responses.
+    
+    This function processes user responses to multiple-choice quiz questions.
+    It supports two different message formats:
+    1. Dictionary format (for direct API responses)
+    2. Pydantic model format (for parsed responses)
+    
+    The handler provides appropriate feedback based on the selected answer,
+    with index 2 ("Strong static typing") being the correct answer.
+    
+    Args:
+        message: A message object containing the user's MCQ selection, either
+            as a dictionary or as a parsed Pydantic model.
+            
+    Raises:
+        Exception: Logs any errors that occur during processing.
+    """
     try:
         if isinstance(message, dict) and 'data' in message:
             mcq_data = message['data']
@@ -88,6 +140,20 @@ def on_mcq_question_ui(message):
 
 @app.on("join")
 def on_user_join(message: JoinMessage):
+    """
+    Event handler for user join events.
+    
+    This function is triggered whenever a user joins a meeting. It logs the meeting ID
+    and sends a welcome message to the new participant introducing the Quiz Bot's
+    functionality.
+    
+    Args:
+        message (JoinMessage): A message object containing information about the
+            user who joined and the meeting they joined.
+            
+    Raises:
+        Exception: Logs any errors that occur during processing.
+    """
     try:
         meeting_id = message.content.meeting_id if hasattr(message.content, "meeting_id") else "unknown"
         logger.info(f"User joined meeting: {meeting_id}")
@@ -97,6 +163,20 @@ def on_user_join(message: JoinMessage):
 
 @app.on_exit()
 def on_user_exit(message: ExitMessage):
+    """
+    Event handler for user exit events.
+    
+    This function is triggered whenever a user leaves a meeting. It logs the meeting ID
+    from which the user exited for monitoring purposes. No response is sent since the
+    user has already left.
+    
+    Args:
+        message (ExitMessage): A message object containing information about the
+            user who left and the meeting they exited.
+            
+    Raises:
+        Exception: Logs any errors that occur during processing.
+    """
     try:
         meeting_id = message.content.user_exited.meeting_id if hasattr(message.content, "user_exited") and message.content.user_exited else "unknown"
         logger.info(f"User exited meeting: {meeting_id}")
@@ -105,6 +185,20 @@ def on_user_exit(message: ExitMessage):
 
 @app.on_connection_rejected()
 def on_reject(message):
+    """
+    Event handler for connection rejection events.
+    
+    This function is triggered when a connection attempt to the Framewise API is rejected.
+    It handles rejection messages in both object format and dictionary format, extracting
+    the rejection reason and logging it for troubleshooting.
+    
+    Args:
+        message: A message object containing the rejection reason, either as a
+            structured object or as a dictionary.
+            
+    Raises:
+        Exception: Logs any errors that occur during processing.
+    """
     try:
         if hasattr(message, 'content') and hasattr(message.content, 'reason'):
             reason = message.content.reason
@@ -118,17 +212,43 @@ def on_reject(message):
 
 
 async def main():
+    """
+    Main entry point for the Quiz Agent application.
+    
+    This function initializes and runs the agent connector with the configured Quiz agent.
+    The agent connector manages the lifecycle of the agent, including:
+    - Establishing and maintaining WebSocket connections
+    - Handling authentication with the Framewise API
+    - Managing reconnection attempts on connection failures
+    - Routing messages between the agent and the Framewise backend
+    
+    Returns:
+        None: This function runs indefinitely until interrupted.
+    
+    Raises:
+        ConnectionError: If unable to establish connection with the Framewise API.
+        AuthenticationError: If API key authentication fails.
+    """
     # Correct way to map the agent name to the app object
     agent_modules = {
         "quiz": app  # Reference to the App instance, not a string
     }
     api_key = "1234567"
-    
-    # Run the agent connector
     await run_agent_connector(api_key, agent_modules)
 
 if __name__ == "__main__":
     def signal_handler(sig, frame):
+        """
+        Signal handler for gracefully shutting down the application.
+        
+        This function is registered to handle SIGINT (Ctrl+C) signals, ensuring
+        that the application performs a clean shutdown by stopping the asyncio
+        event loop.
+        
+        Args:
+            sig (int): Signal number.
+            frame (frame): Current stack frame.
+        """
         logger.info("Keyboard interrupt received, shutting down...")
         asyncio.get_event_loop().stop()
 

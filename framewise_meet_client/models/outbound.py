@@ -1,22 +1,67 @@
-"""Outbound message models for the Framewise Meet client.
+"""
+Outbound message models for the Framewise Meet client.
 
-This module contains all message types that are sent to the server.
+This module defines all Pydantic models for messages sent from the client
+to the Framewise backend server. These models ensure that outgoing messages
+conform to the expected JSON structures, providing type safety and validation.
+
+Key message categories:
+- Simple UI elements (buttons, inputs)
+- Custom UI components (MCQ questions, notifications, file uploads, etc.)
+- Generated text messages for conversational responses
+- Subscription and handler registration messages for UI events
+
+Usage example:
+    sender.send_mcq_question(
+        question_id="q1",
+        question="What is the capital of France?",
+        options=["Paris", "Berlin", "Madrid"]
+    )
+
+    # Subscribe to responses for MCQ components
+    subscription = ElementResponseSubscription(
+        element_types=["mcq_question"],
+        handler_id="mcq_handler_1"
+    )
+    sender.send_custom_ui_element(subscription)
 """
 
 from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 
-
 class MCQOption(BaseModel):
-    """Option for a multiple-choice question."""
+    """
+    Represents one selectable option in a multiple-choice question.
+
+    Attributes:
+        id: Unique identifier for this option.
+        text: Display text for this option.
+
+    Example:
+        MCQOption(id="opt1", text="Option A")
+    """
 
     id: str = Field(..., description="Option identifier")
     text: str = Field(..., description="Option text")
 
 
 class MultipleChoiceQuestion(BaseModel):
-    """Multiple-choice question model."""
+    """
+    Model for a multiple-choice question payload.
+
+    Attributes:
+        question_id: Unique identifier for the question.
+        question_text: The text prompt of the question.
+        options: List of MCQOption instances defining the selectable options.
+
+    Example:
+        MultipleChoiceQuestion(
+            question_id="q1",
+            question_text="Choose a number:",
+            options=[MCQOption(id="1", text="One"), MCQOption(id="2", text="Two")]
+        )
+    """
 
     question_id: str = Field(..., description="Question identifier")
     question_text: str = Field(..., description="Question text")
@@ -24,7 +69,17 @@ class MultipleChoiceQuestion(BaseModel):
 
 
 class ButtonElement(BaseModel):
-    """Button UI element model."""
+    """
+    Defines a clickable button UI component.
+
+    Attributes:
+        id: Unique identifier for the button.
+        text: Label displayed on the button.
+        style: Optional dictionary for styling properties (CSS-like).
+
+    Example:
+        ButtonElement(id="btn1", text="Submit", style={"color": "blue"})
+    """
 
     id: str = Field(..., description="Button identifier")
     text: str = Field(..., description="Button text")
@@ -34,7 +89,24 @@ class ButtonElement(BaseModel):
 
 
 class InputElement(BaseModel):
-    """Input field UI element model."""
+    """
+    Defines a text input UI component.
+
+    Attributes:
+        id: Unique identifier for the input field.
+        label: Display label for the input.
+        placeholder: Placeholder text shown when the field is empty.
+        type: Input data type, e.g., "text" or "number".
+        default_value: Optional default value pre-filled in the field.
+
+    Example:
+        InputElement(
+            id="inp1",
+            label="Your name",
+            placeholder="Enter name",
+            type="text"
+        )
+    """
 
     id: str = Field(..., description="Input identifier")
     label: str = Field(..., description="Input label")
@@ -44,7 +116,12 @@ class InputElement(BaseModel):
 
 
 class CustomUIElement(BaseModel):
-    """Base class for custom UI elements."""
+    """
+    Base class for all custom UI elements sent to the client.
+
+    The 'type' field identifies the specific element subtype. Subclasses
+    must specify a Literal type to constrain valid values.
+    """
 
     type: str = Field(..., description="Element type")
 
@@ -64,7 +141,13 @@ class CustomUIInputElement(CustomUIElement):
 
 
 class GeneratedTextContent(BaseModel):
-    """Content for generated text response."""
+    """
+    Payload for streaming or non-streaming generated text responses.
+
+    Attributes:
+        text: The generated text to display.
+        is_generation_end: True if this is the final chunk of text.
+    """
 
     text: str = Field(..., description="Generated text")
     is_generation_end: bool = Field(
@@ -89,7 +172,13 @@ class CustomUIContent(BaseModel):
 
 
 class GeneratedTextMessage(BaseModel):
-    """Response with generated text."""
+    """
+    Message model for sending generated conversational text.
+
+    Fields:
+        type: Must be "generated_text".
+        content: GeneratedTextContent instance with the text payload.
+    """
 
     type: Literal["generated_text"] = "generated_text"
     content: GeneratedTextContent = Field(
@@ -132,7 +221,13 @@ class MCQQuestionData(BaseModel):
 
 
 class MCQQuestionElement(BaseModel):
-    """MCQ question UI element."""
+    """
+    UI element representing a multiple-choice question to the client.
+
+    Attributes:
+        type: Literal "mcq_question".
+        data: MCQQuestionData model with question details and options.
+    """
 
     type: Literal["mcq_question"] = "mcq_question"
     data: MCQQuestionData = Field(..., description="MCQ question data")
@@ -150,7 +245,13 @@ class NotificationData(BaseModel):
 
 
 class NotificationElement(BaseModel):
-    """Notification UI element."""
+    """
+    UI element for displaying styled notifications or alerts.
+
+    Attributes:
+        type: Literal "notification_element".
+        data: NotificationData with message text and display options.
+    """
 
     type: Literal["notification_element"] = "notification_element"
     data: NotificationData = Field(..., description="Notification data")
@@ -169,9 +270,12 @@ class PlacesAutocompleteData(BaseModel):
 
 
 class PlacesAutocompleteElement(BaseModel):
-    """Places autocomplete UI element.
+    """
+    UI element for location input with autocomplete functionality.
 
-    Container for the places autocomplete data that defines the element type.
+    Attributes:
+        type: Literal "places_autocomplete".
+        data: PlacesAutocompleteData with placeholder and prompt.
     """
 
     type: Literal["places_autocomplete"] = "places_autocomplete"
@@ -192,9 +296,12 @@ class UploadFileData(BaseModel):
 
 
 class UploadFileElement(BaseModel):
-    """File upload UI element.
+    """
+    UI element for allowing users to upload files from their device.
 
-    Container for the file upload data that defines the element type.
+    Attributes:
+        type: Literal "upload_file".
+        data: UploadFileData specifying file type and size restrictions.
     """
 
     type: Literal["upload_file"] = "upload_file"
@@ -216,9 +323,12 @@ class TextInputData(BaseModel):
 
 
 class TextInputElement(BaseModel):
-    """Text input UI element.
+    """
+    UI element for free-form text entry, single or multiline.
 
-    Container for the text input data that defines the element type.
+    Attributes:
+        type: Literal "textinput".
+        data: TextInputData with prompt, placeholder, and multiline flag.
     """
 
     type: Literal["textinput"] = "textinput"
@@ -244,9 +354,12 @@ class ConsentFormData(BaseModel):
 
 
 class ConsentFormElement(BaseModel):
-    """Consent form UI element.
+    """
+    UI element for consent acknowledgments (e.g., terms of service).
 
-    Container for the consent form data that defines the element type.
+    Attributes:
+        type: Literal "consent_form".
+        data: ConsentFormData with text and checkbox labels.
     """
 
     type: Literal["consent_form"] = "consent_form"
@@ -266,9 +379,12 @@ class CalendlyData(BaseModel):
 
 
 class CalendlyElement(BaseModel):
-    """Calendly scheduling UI element.
+    """
+    UI element embedding a Calendly scheduling interface.
 
-    Container for the Calendly scheduling data that defines the element type.
+    Attributes:
+        type: Literal "calendly".
+        data: CalendlyData with URL, title, and subtitle.
     """
 
     type: Literal["calendly"] = "calendly"
@@ -277,7 +393,13 @@ class CalendlyElement(BaseModel):
 
 # Update the CustomUIElementMessage to include all the new element types
 class CustomUIElementMessage(BaseModel):
-    """Message for sending a custom UI element."""
+    """
+    Envelope message model for sending any custom UI element.
+
+    Fields:
+        type: Literal "custom_ui_element".
+        content: One of the recognized CustomUIElement subclasses.
+    """
 
     type: Literal["custom_ui_element"] = "custom_ui_element"
     content: Union[
@@ -294,9 +416,16 @@ class CustomUIElementMessage(BaseModel):
 
 # Add response handler class for custom UI element responses
 class UIElementResponseHandler(BaseModel):
-    """Base class for handling custom UI element responses.
+    """
+    Subscription message for handling client-side UI interactions.
 
-    This class defines the structure for handlers that respond to UI element interactions.
+    This message registers a handler for a specific UI element type,
+    enabling the backend to route user responses to the correct logic.
+
+    Fields:
+        type: Literal "ui_element_response_handler".
+        element_type: The UI element type string to handle (e.g., "mcq_question").
+        element_id: Identifier of the specific element instance to listen for.
     """
 
     type: Literal["ui_element_response_handler"] = "ui_element_response_handler"
@@ -305,9 +434,16 @@ class UIElementResponseHandler(BaseModel):
 
 
 class ElementResponseSubscription(BaseModel):
-    """Response subscribing to custom UI element responses.
+    """
+    Subscription message to receive user interaction events for multiple elements.
 
-    This class defines which element types to listen for and receive responses from.
+    This message tells the backend which UI element types the client wants
+    to subscribe to, and includes a handler ID to correlate responses.
+
+    Fields:
+        type: Literal "subscribe_element_responses".
+        element_types: List of element type strings to subscribe to.
+        handler_id: Unique identifier for the event handler on the backend.
     """
 
     type: Literal["subscribe_element_responses"] = "subscribe_element_responses"

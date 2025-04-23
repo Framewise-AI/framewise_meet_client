@@ -1,3 +1,14 @@
+"""
+Runner module for the Framewise Meet client.
+
+This module defines the AppRunner class, which manages the application's
+main event loop, including WebSocket connection management, message
+conversion, event dispatching, reconnection logic, and graceful shutdown.
+
+Usage example:
+    runner = AppRunner(connection, event_dispatcher)
+    runner.run(app)
+"""
 import asyncio
 import logging
 import signal
@@ -19,7 +30,20 @@ logger = logging.getLogger(__name__)
 
 
 class AppRunner:
-    """Manages the application's main event loop with improved reliability."""
+    """
+    Manages the application's main event loop with improved reliability.
+    
+    The AppRunner is responsible for:
+    1. Establishing and maintaining WebSocket connections
+    2. Processing incoming messages and converting them to appropriate model types
+    3. Dispatching events to registered handlers
+    4. Managing reconnection attempts when connections fail
+    5. Handling graceful shutdown when termination signals are received
+    
+    It serves as the core runtime component of the Framewise Meet Client,
+    orchestrating the flow of messages between the WebSocket connection and
+    the event handling system.
+    """
 
     # Message type mapping
     _message_classes = {
@@ -34,13 +58,17 @@ class AppRunner:
     def __init__(
         self, connection, event_dispatcher, auto_reconnect=True, reconnect_delay=5
     ):
-        """Initialize the app runner.
+        """
+        Initialize the application runner.
 
         Args:
-            connection: WebSocketConnection instance
-            event_dispatcher: EventDispatcher instance
-            auto_reconnect: Whether to automatically reconnect on disconnect
-            reconnect_delay: Delay between reconnection attempts in seconds
+            connection: WebSocketConnection instance that manages the underlying
+                        WebSocket connection to the Framewise backend.
+            event_dispatcher: EventDispatcher instance responsible for routing
+                             events to appropriate handlers.
+            auto_reconnect: Boolean indicating whether to automatically reconnect
+                          on disconnection (default: True).
+            reconnect_delay: Delay between reconnection attempts in seconds (default: 5).
         """
         self.connection = connection
         self.event_dispatcher = event_dispatcher
@@ -49,15 +77,25 @@ class AppRunner:
 
     def _convert_message(
         self, message_type: str, data: Dict[str, Any]
-    ) -> Optional[BaseModel]:  # Change return type to BaseModel
-        """Convert raw message data to appropriate message object.
+    ) -> Optional[BaseModel]:
+        """
+        Convert raw message data to the appropriate message object type.
+
+        This method validates and converts incoming JSON data to strongly-typed
+        Pydantic model instances based on the message type. This provides
+        type safety and validation for all incoming messages.
 
         Args:
-            message_type: Type of message
-            data: Raw message data
+            message_type: Type identifier of the message.
+            data: Raw message data dictionary received from WebSocket.
 
         Returns:
-            Converted message object or None if conversion failed
+            Converted message object or None if conversion failed due to validation
+            errors or if no appropriate message class was found.
+            
+        Raises:
+            ValidationError: If the message data fails validation against the model schema.
+                           This is caught internally and logged as a warning.
         """
         message_class = self._message_classes.get(message_type)
         if not message_class:
@@ -74,7 +112,26 @@ class AppRunner:
             return None
 
     async def _listen(self) -> None:
-        """Listen for incoming messages and dispatch to handlers."""
+        """
+        Listen for incoming messages and dispatch to handlers.
+        
+        This method runs in a continuous loop while the connection is active,
+        receiving messages from the WebSocket connection, converting them to
+        appropriate types, and dispatching them to registered event handlers.
+        
+        Special handling is implemented for:
+        - Connection rejection messages that may terminate the connection
+        - Final transcript messages that trigger the invoke event
+        - Custom UI element responses that may require additional dispatching
+          based on element type
+        
+        Returns:
+            None
+            
+        Raises:
+            ConnectionError: If there's an issue with the WebSocket connection.
+                           This is caught internally and may trigger reconnection.
+        """
         try:
             while self.connection.connected:
                 data = await self.connection.receive()
@@ -157,7 +214,21 @@ class AppRunner:
             logger.warning(f"Connection error: {str(e)}")
 
     async def _main_loop(self) -> None:
-        """Main application loop."""
+        """
+        Main application event loop.
+        
+        This method manages the application's main lifecycle, including:
+        - Initial connection establishment
+        - Listening for incoming messages
+        - Handling reconnection attempts when connections fail
+        - Cleaning up resources when the application is shutting down
+        
+        The loop continues running until the application is explicitly stopped
+        or a non-recoverable error occurs.
+        
+        Returns:
+            None
+        """
         try:
             while self.app.running:
                 try:
@@ -178,12 +249,37 @@ class AppRunner:
                 await self.connection.disconnect()
 
     def _handle_signal(self, sig, frame):
-        """Handle termination signals."""
+        """
+        Handle termination signals for graceful shutdown.
+        
+        This method is registered as a signal handler for SIGINT and SIGTERM
+        signals, allowing the application to perform clean shutdown procedures
+        when interrupted by the user or the system.
+        
+        Args:
+            sig: Signal number received.
+            frame: Current stack frame.
+            
+        Returns:
+            None
+        """
         logger.info(f"Received signal {sig}, shutting down...")
         self.app.stop()
 
     def run(self, app):
-        """Run the application (blocking)."""
+        """
+        Run the application in a blocking manner.
+        
+        This method starts the main application loop and sets up signal handlers
+        for graceful shutdown. It manages the complete lifecycle of the application,
+        from startup to shutdown.
+        
+        Args:
+            app: The application instance to run.
+            
+        Returns:
+            None
+        """
         self.app = app
 
         # Set up signal handlers for graceful shutdown

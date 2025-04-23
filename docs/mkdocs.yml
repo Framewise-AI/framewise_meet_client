@@ -48,3 +48,6 @@ nav:
   - API Reference: reference/
   - Guides:
     - Adding Custom UI Components: adding_custom_ui_components.md
+    - Agent Connector: agent_connector.md
+    - Continuous Listener: continuous_listener.md
+    - Examples: examples.md

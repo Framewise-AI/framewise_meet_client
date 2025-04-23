@@ -13,20 +13,37 @@ logger = logging.getLogger("AgentConnector")
 
 class AgentConnector:
     """
-    Connector for agent management and coordination.
+    Connector for agent management and coordination in the Framewise Meet system.
     
-    This class handles WebSocket connections to receive agent start commands
-    and manages spawning agent processes.
+    The AgentConnector serves as an intermediary between the Framewise backend and
+    agent instances. It maintains a WebSocket connection to receive agent start commands
+    from the backend and manages the lifecycle of agent processes, starting them in 
+    separate processes for isolation and stability.
+    
+    Key features:
+    - WebSocket connection to the Framewise backend for receiving agent commands
+    - Dynamic agent process management with multiprocessing
+    - Automatic reconnection with exponential backoff
+    - Support for both module path-based and direct app object-based agent registration
+    - Process tracking and cleanup
+    
+    This class is typically used in a server-side deployment to dynamically start
+    agent instances in response to meeting join events.
     """
     
     def __init__(self, api_key: str, agent_modules: Dict[str, Union[str, Any]]):
-        """Initialize the agent connector.
+        """
+        Initialize the agent connector with authentication and agent configuration.
         
         Args:
-            api_key: API key for authentication
+            api_key: API key for authentication with the Framewise backend.
+                    This key is used to establish the WebSocket connection and
+                    authorize agent operations.
             agent_modules: Mapping of agent names to either:
-                           - module paths (string)
-                           - app objects (direct references)
+                          - module paths (string) that will be dynamically imported
+                          - app objects (direct references) that will be used directly
+                          
+                          Example: {"quiz_agent": "myagents.quiz", "support_agent": app_instance}
         """
         self.api_key = api_key
         self.ws_url = f"wss://backend.framewise.ai/ws/api_key/{api_key}"
@@ -36,7 +53,20 @@ class AgentConnector:
         self.websocket = None
         
     async def connect_and_listen(self):
-        """Connect to WebSocket and listen for agent start commands."""
+        """
+        Connect to the WebSocket endpoint and listen for agent start commands.
+        
+        This method establishes a persistent WebSocket connection to the Framewise
+        backend and listens for incoming commands. It implements an exponential
+        backoff reconnection strategy to handle temporary connection failures.
+        
+        The method runs indefinitely until the connector is explicitly stopped,
+        providing continuous service for agent management.
+        
+        Raises:
+            ConnectionError: If there's a persistent failure to connect to the WebSocket.
+            AuthenticationError: If the API key is rejected by the server.
+        """
         self.running = True
         logger.info(f"Connecting to WebSocket at {self.ws_url}")
         
@@ -69,10 +99,20 @@ class AgentConnector:
                     reconnect_delay = min(reconnect_delay * 2, max_reconnect_delay)
     
     async def handle_message(self, message_raw):
-        """Process received WebSocket message.
+        """
+        Process received WebSocket messages and take appropriate actions.
+        
+        This method parses incoming JSON messages and processes agent start
+        commands by extracting the agent name and meeting ID, then launching
+        the appropriate agent process.
         
         Args:
-            message_raw: Raw message string from WebSocket
+            message_raw: Raw message string from the WebSocket connection.
+                       Expected format: {"agent_name": "agent_id", "meeting_id": "meeting_id"}
+                       
+        Note:
+            Any errors during message parsing or agent startup are caught and logged
+            to prevent the WebSocket connection from terminating.
         """
         try:
             message = json.loads(message_raw)
@@ -94,14 +134,24 @@ class AgentConnector:
             logger.error(f"Error handling message: {str(e)}")
     
     def start_agent_process(self, agent_name: str, meeting_id: str) -> bool:
-        """Start an agent in a separate process.
+        """
+        Start an agent in a separate process to handle a specific meeting.
+        
+        This method creates a new process for the requested agent and meeting,
+        either by dynamically importing a module or using a directly provided
+        app object. The agent process is tracked for lifecycle management.
         
         Args:
-            agent_name: Name of the agent to start
-            meeting_id: Meeting ID to connect the agent to
+            agent_name: Name of the agent to start, must match a key in agent_modules.
+            meeting_id: Meeting ID to connect the agent to.
             
         Returns:
-            True if agent was started successfully, False otherwise
+            bool: True if the agent was started successfully, False otherwise.
+            
+        Note:
+            Each agent process is isolated and runs independently, which prevents
+            issues in one agent from affecting others. The process is tracked in
+            the active_agents dictionary for later cleanup.
         """
         if agent_name not in self.agent_modules:
             logger.error(f"Unknown agent: {agent_name}")
@@ -153,7 +203,17 @@ class AgentConnector:
             return False
     
     def stop(self):
-        """Stop the connector and cleanup resources."""
+        """
+        Stop the connector and clean up all resources.
+        
+        This method:
+        1. Sets the running flag to False to stop the main loop
+        2. Terminates all active agent processes
+        3. Clears the active_agents registry
+        
+        It should be called when shutting down the application or when the
+        connector is no longer needed to ensure proper resource cleanup.
+        """
         logger.info("Stopping agent connector...")
         self.running = False
         
@@ -166,31 +226,62 @@ class AgentConnector:
         self.active_agents.clear()
 
     def register_agent(self, name: str, module_path_or_app_object: Union[str, Any]):
-        """Register a new agent type.
+        """
+        Register a new agent type with the connector.
+        
+        This method allows dynamic registration of agents after the connector
+        has been initialized, providing flexibility for runtime configuration.
         
         Args:
-            name: Agent name
-            module_path_or_app_object: Either a module path (string) or an app object
+            name: Agent name identifier used in start commands.
+            module_path_or_app_object: Either:
+                                      - A module path (string) that will be imported when starting the agent
+                                      - An app object (reference) that will be used directly
+                                      
+        Example:
+            ```python
+            connector.register_agent("my_agent", "mypackage.myagent")
+            connector.register_agent("direct_agent", app_instance)
+            ```
         """
         self.agent_modules[name] = module_path_or_app_object
         logger.info(f"Registered agent '{name}'")
         
     def unregister_agent(self, name: str):
-        """Unregister an agent type.
+        """
+        Unregister an agent type from the connector.
+        
+        This method removes an agent from the registry, preventing it from being
+        started in response to future commands. It does not affect already running
+        agent processes.
         
         Args:
-            name: Agent name to unregister
+            name: Agent name to unregister.
         """
         if name in self.agent_modules:
             del self.agent_modules[name]
             logger.info(f"Unregistered agent '{name}'")
 
 async def run_agent_connector(api_key: str, agent_modules: Dict[str, Union[str, Any]]):
-    """Run an agent connector instance.
+    """
+    Run an agent connector instance as a standalone service.
+    
+    This convenience function creates an AgentConnector instance and runs it until
+    interrupted. It handles proper shutdown when the process receives a keyboard
+    interrupt (Ctrl+C).
     
     Args:
-        api_key: API key for authentication
-        agent_modules: Mapping of agent names to either module paths (string) or app objects
+        api_key: API key for authentication with the Framewise backend.
+        agent_modules: Mapping of agent names to either module paths (strings) or app objects.
+        
+    Example:
+        ```python
+        agent_modules = {
+            "quiz": "myagents.quiz_agent",
+            "support": app_instance
+        }
+        asyncio.run(run_agent_connector("api_key_12345", agent_modules))
+        ```
     """
     connector = AgentConnector(api_key=api_key, agent_modules=agent_modules)
     

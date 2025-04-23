@@ -1,4 +1,16 @@
-"""Constants used throughout the Framewise Meet client."""
+"""
+Constants used throughout the Framewise Meet client library.
+
+This module defines string constants for event types, UI element types,
+notification levels, and default connection parameters. Using these constants
+ensures consistency across the application and prevents typos in event strings.
+
+Usage example:
+    from framewise_meet_client.constants import TRANSCRIPT_EVENT, MCQ_QUESTION_EVENT
+
+    if event_type == TRANSCRIPT_EVENT:
+        handle_transcript(message)
+"""
 
 # Event types
 TRANSCRIPT_EVENT = "transcript"
