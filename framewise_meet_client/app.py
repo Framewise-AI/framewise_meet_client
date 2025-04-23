@@ -86,7 +86,32 @@ T = TypeVar("T", bound=BaseMessage)
 
 
 class App:
-    """WebSocket client app with decorator-based event handlers."""
+    """
+    WebSocket client application with decorator-based event handling.
+    
+    The App class serves as the primary interface for developers building applications
+    with the Framewise Meet Client. It provides:
+    
+    1. A simple decorator-based API for registering event handlers
+    2. Methods for sending different types of messages to the Framewise backend
+    3. Connection management with automatic reconnection capabilities
+    4. Type-safe event handling with proper validation
+    
+    Event handlers can be registered using either the generic on() method or 
+    specific convenience methods like on_transcript(), on_join(), etc.
+    
+    Example:
+        ```python
+        app = App(api_key="your_api_key")
+        
+        @app.on_transcript()
+        def handle_transcript(message):
+            print(f"Received transcript: {message.content.text}")
+            
+        app.join_meeting("meeting-id")
+        app.run()
+        ```
+    """
 
     _event_aliases = {
         "join": JOIN_EVENT,
@@ -116,13 +141,15 @@ class App:
     def __init__(
         self, api_key: Optional[str] = None, host: str = "localhost", port: int = 8000
     ):
-        """Initialize the app with connection details.
-
+        """
+        Initialize the Framewise Meet client application with connection parameters.
+        
         Args:
-            meeting_id: ID of the meeting to join
-            api_key: Optional API key for authentication
-            host: Server hostname
-            port: Server port
+            api_key: Optional API key for authentication with the Framewise API.
+                   Required for creating meetings and accessing protected features.
+            host: Server hostname or IP address where the Framewise API is running.
+                 Defaults to "localhost" for local development.
+            port: Server port number. Defaults to 8000.
         """
         self.meeting_id = None
         self.host = host
@@ -137,6 +164,21 @@ class App:
         self._main_task = None
 
     def join_meeting(self, meeting_id):
+        """
+        Connect to a specific meeting using the provided meeting ID.
+        
+        This method initializes the WebSocket connection to the Framewise backend
+        and connects the app to a specific meeting. It also sets up the MessageSender
+        and dynamically binds its methods to the App instance to provide message
+        sending capabilities.
+        
+        Args:
+            meeting_id: Unique identifier for the meeting to join.
+                       This ID must correspond to an existing meeting in the Framewise system.
+                       
+        Note:
+            This method must be called before running the application.
+        """
         self.meeting_id = meeting_id
         self.connection = WebSocketConnection(
             self.host, self.port, meeting_id, self.api_key
@@ -151,13 +193,27 @@ class App:
                 setattr(self, name, getattr(self.message_sender, name))
 
     def on(self, event_type: str) -> Callable[[Callable[[BaseMessage], Any]], Callable[[BaseMessage], Any]]:
-        """Register a handler for a specific event type.
+        """
+        Register a handler for a specific event type.
+        
+        This is the core event registration method that all other event handling
+        methods use internally. It handles event type aliasing and ensures type safety
+        for message handlers.
         
         Args:
-            event_type: The event type to register for (e.g., "transcript", "join", "exit")
+            event_type: The event type to register for (e.g., "transcript", "join", "exit").
+                      Can be either a direct event type or an alias defined in _event_aliases.
             
         Returns:
-            A decorator function that registers the handler
+            A decorator function that registers the decorated function as a handler
+            for the specified event type.
+            
+        Example:
+            ```python
+            @app.on("transcript")
+            def handle_transcript(message):
+                print(f"Received transcript: {message.content.text}")
+            ```
         """
         # Check if this is an alias and get the main event type
         resolved_event_type = self._event_aliases.get(event_type, event_type)
@@ -189,9 +245,23 @@ class App:
         return decorator
 
     def __getattr__(self, name):
-        """Dynamically create event handler methods.
-
-        This allows methods like on_transcript, on_join, etc. to be generated dynamically.
+        """
+        Dynamically create event handler registration methods.
+        
+        This magic method allows methods like on_transcript(), on_join(), etc. to be
+        generated dynamically when accessed, providing a more intuitive API for
+        registering event handlers.
+        
+        Args:
+            name: The attribute name being accessed.
+            
+        Returns:
+            A method that registers event handlers if the name follows the pattern
+            "on_<event_type>", otherwise raises AttributeError.
+            
+        Raises:
+            AttributeError: If the requested attribute doesn't follow the pattern
+                          "on_<event_type>" or if the event type is not recognized.
         """
         if name.startswith("on_"):
             event_name = name[3:]
@@ -214,7 +284,21 @@ class App:
         func: Callable[[BaseModel], Any] = None,
         shorthand_name: str = None,
     ):
-        """Helper function to reduce code duplication in event registration."""
+        """
+        Helper function to reduce code duplication in event registration.
+        
+        This internal method is used by the dynamically generated event handler
+        registration methods to provide a consistent way to register handlers.
+        
+        Args:
+            event_type: The type of event to register for, either as a string or an EventType enum.
+            func: The function to register as a handler, or None if using as a decorator.
+            shorthand_name: The name of the shorthand method being used (for logging).
+            
+        Returns:
+            Either the registered function or a decorator function that will register
+            a function when applied.
+        """
         event_type_value = (
             event_type.value if isinstance(event_type, EventType) else event_type
         )
@@ -224,10 +308,27 @@ class App:
         return self.on(event_type_value)(func)
 
     def invoke(self, func: Callable[[TranscriptMessage], Any] = None):
-        """Alias for on_invoke for convenience.
-
+        """
+        Register a handler for invoke events (final transcripts).
+        
+        Invoke events are triggered when a final transcript is received. This is a
+        convenience method alias for on_invoke() and provides a clearer API for
+        registering handlers that process complete user utterances.
+        
         Args:
-            func: Function that takes a TranscriptMessage and processes the event
+            func: Function that takes a TranscriptMessage and processes the event.
+                 If None, returns a decorator function.
+                 
+        Returns:
+            Either the registered function or a decorator function.
+            
+        Example:
+            ```python
+            @app.invoke
+            def process_final_transcript(message):
+                transcript = message.content.text
+                print(f"Processing final transcript: {transcript}")
+            ```
         """
         return self.on_invoke(func)
 
@@ -459,7 +560,7 @@ class App:
         
         def decorator(func):
             # If a specific element type is provided
-            if element_type:
+            if (element_type):
                 # Create wrapper that checks the element type
                 async def wrapper(message: CustomUIElementResponse):
                     if not isinstance(message, CustomUIElementResponse):

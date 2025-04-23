@@ -1,3 +1,22 @@
+"""
+Event dispatching core for Framewise Meet client.
+
+This module defines the EventDispatcher class, which manages the registration
+and invocation of event handlers for different message types. Handlers can be
+registered for specific event strings, and dispatched data is routed to
+all matching handlers, including support for async handlers.
+
+Key features:
+- Registering handlers for event types
+- Dispatching BaseMessage instances to handlers
+- Synchronous and asynchronous handler support
+
+Usage example:
+    dispatcher = EventDispatcher()
+    dispatcher.register('transcript', handle_transcript)
+    await dispatcher.dispatch('transcript', TranscriptMessage(...))
+"""
+
 import asyncio
 from typing import Any, Callable, Dict, List, Union
 import logging

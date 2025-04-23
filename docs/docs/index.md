@@ -38,4 +38,8 @@ if __name__ == "__main__":
 
 ## Documentation Structure
 
+- **Core Features**
+  - [Continuous Listener](continuous_listener.md): Auto-reconnection and robust connection handling
+  - [Custom UI Components](adding_custom_ui_components.md): Adding interactive UI elements
+  - [Agent Connector](agent_connector.md): Managing multiple AI agents with automatic startup
 - **API Reference**: Detailed documentation of all modules and functions

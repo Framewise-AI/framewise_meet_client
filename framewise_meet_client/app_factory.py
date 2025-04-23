@@ -1,4 +1,19 @@
-"""Factory functions for creating App instances with different configurations."""
+"""
+Factory functions for creating and configuring App instances.
+
+This module provides helper functions to construct App objects using
+various sources of configuration: explicit parameters, environment
+variables, or JSON configuration files.
+
+Usage:
+    from framewise_meet_client.app_factory import create_app, create_app_from_env
+
+    # Create with explicit parameters
+    app = create_app(api_key="your_key", host="backend.framewise.ai", port=443)
+
+    # Create using environment variables
+    app = create_app_from_env()
+"""
 
 import logging
 from typing import Optional, Dict, Any
@@ -12,15 +27,16 @@ logger = logging.getLogger(__name__)
 
 def create_app(api_key: Optional[str] = None, config: Optional[ClientConfig] = None, 
               **kwargs) -> App:
-    """Create and configure an App instance.
-    
+    """
+    Create and configure an App instance.
+
     Args:
-        api_key: API key for authentication
-        config: Client configuration
-        **kwargs: Additional configuration options that override values in config
-        
+        api_key: API key for authentication with Framewise backend.
+        config: Optional ClientConfig object containing host, port, etc.
+        **kwargs: Additional configuration overrides for the ClientConfig fields.
+
     Returns:
-        Configured App instance
+        An initialized App object with logging, connection, and event settings applied.
     """
     # Create default config if none provided
     if config is None:
@@ -45,7 +61,21 @@ def create_app(api_key: Optional[str] = None, config: Optional[ClientConfig] = N
     return app
 
 def create_app_from_env() -> App:
-    """Create app instance with configuration from environment variables."""
+    """
+    Create an App instance using configuration from environment variables.
+
+    Environment variables:
+        FRAMEWISE_API_KEY: API key
+        FRAMEWISE_HOST: Hostname
+        FRAMEWISE_PORT: Port number
+        FRAMEWISE_LOG_LEVEL: Logging level
+        FRAMEWISE_AUTO_RECONNECT: Auto-reconnect flag
+        FRAMEWISE_RECONNECT_DELAY: Delay between reconnects
+        FRAMEWISE_CONNECTION_TIMEOUT: Connection timeout
+
+    Returns:
+        An initialized App instance.
+    """
     config = ClientConfig.from_env()
     return create_app(
         api_key=os.environ.get("FRAMEWISE_API_KEY"),
@@ -53,6 +83,15 @@ def create_app_from_env() -> App:
     )
 
 def create_app_from_config_file(file_path: str, api_key: Optional[str] = None) -> App:
-    """Create app instance with configuration from a JSON file."""
+    """
+    Create an App instance using configuration loaded from a JSON file.
+
+    Args:
+        file_path: Path to the JSON file containing ClientConfig settings.
+        api_key: Optional API key to override any file-based setting.
+
+    Returns:
+        An initialized App instance with settings from the file and provided api_key.
+    """
     config = ClientConfig.from_json_file(file_path)
     return create_app(api_key=api_key, config=config)

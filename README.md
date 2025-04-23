@@ -32,7 +32,7 @@ from framewise_meet_client import App
 from framewise_meet_client.models.inbound import TranscriptMessage
 
 # Create an app instance with your API key
-app = App(api_key="your_api_key_here")
+app = App(api_key="your_api_key_here", host="backendapi.framewise.ai", port=443)
 
 # Join a meeting
 app.join_meeting("your_meeting_id")
@@ -57,10 +57,10 @@ The client supports API key authentication:
 
 ```python
 # Initialize with API key
-app = App(api_key="your_api_key_here")
+app = App(api_key="your_api_key_here", host="backendapi.framewise.ai", port=443)
 
 # Or set API key later
-app = App()
+app = App(host="backendapi.framewise.ai", port=443)
 app.set_api_key("your_api_key_here")
 ```
 

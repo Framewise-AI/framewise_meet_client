@@ -1,4 +1,14 @@
-"""Logging configuration for the Framewise Meet client."""
+"""
+Logging configuration utility for the Framewise Meet client.
+
+This module provides a helper function to standardize logging setup across
+applications built with the Framewise Meet Client. It supports console and
+file output, custom log levels, and flexible formatting.
+
+Usage example:
+    from framewise_meet_client.logging_config import configure_logging
+    configure_logging(level="DEBUG", log_file="app.log")
+"""
 
 import logging
 import sys
@@ -13,13 +23,21 @@ def configure_logging(
     log_file: Optional[str] = None,
     log_to_console: bool = True
 ) -> None:
-    """Configure logging for the application.
-    
+    """
+    Configure the root logger for the application.
+
+    This function resets any existing handlers on the root logger and applies
+    new handlers based on the provided parameters. It supports logging to
+    stdout and optionally to a file with the same format.
+
     Args:
-        level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        format_str: Log format string
-        log_file: Optional file path to write logs to
-        log_to_console: Whether to log to console
+        level: Log level as a string (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+        format_str: Format string for log messages.
+        log_file: Optional file path to write logs to. If None, file logging is disabled.
+        log_to_console: Whether to add a console (stdout) handler.
+
+    Raises:
+        ValueError: If the provided log level string is invalid.
     """
     # Convert level string to logging level
     numeric_level = getattr(logging, level.upper(), None)

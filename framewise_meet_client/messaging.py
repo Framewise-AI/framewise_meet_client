@@ -47,21 +47,45 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class MessageSender:
-    """Manages sending messages to the server."""
+    """
+    Manages sending various types of messages to the Framewise backend server.
+    
+    The MessageSender provides an abstracted interface for sending strongly-typed
+    messages to the Framewise backend through a WebSocket connection. It handles:
+    
+    1. Pydantic model serialization for type safety
+    2. Different types of UI elements (MCQ, notifications, text inputs, etc.)
+    3. Generated text responses with streaming support
+    4. Error reporting
+    
+    Each message type has a dedicated method with appropriate parameters,
+    making it easy to send correctly formatted messages without needing to
+    understand the underlying message format details.
+    
+    This class is used internally by the App class, which exposes these methods
+    directly for convenience.
+    """
 
     def __init__(self, connection):
-        """Initialize the message sender.
-
+        """
+        Initialize the message sender with a WebSocket connection.
+        
         Args:
-            connection: WebSocketConnection instance
+            connection: WebSocketConnection instance used to send messages
+                       to the Framewise backend.
         """
         self.connection = connection
 
     async def _send_model(self, model: BaseModel) -> None:
-        """Send a Pydantic model to the server.
-
+        """
+        Send a Pydantic model to the server as a serialized message.
+        
+        This internal method handles the serialization of Pydantic models
+        and sends them through the WebSocket connection. It includes error
+        handling and logging.
+        
         Args:
-            model: Pydantic model to send
+            model: Pydantic model to serialize and send.
         """
         if not self.connection.connected:
             logger.warning("Cannot send message: Connection is not established")
@@ -77,13 +101,18 @@ class MessageSender:
             logger.error(f"Error sending message: {str(e)}")
 
     async def _send_message(self, message: Dict[str, Any]) -> None:
-        """Send a message to the server.
-
+        """
+        Send a dictionary message to the server.
+        
+        This is a lower-level method that sends raw dictionary messages
+        through the WebSocket connection. It includes detailed logging
+        and error handling.
+        
         Args:
-            message: The message to send
+            message: The message dictionary to send.
 
         Raises:
-            ConnectionError: If the connection is not established
+            ConnectionError: If the connection is not established.
         """
         if not self.connection or not self.connection.connected:
             raise ConnectionError("Not connected to server")
@@ -98,13 +127,18 @@ class MessageSender:
             raise ConnectionError(f"Failed to send message: {str(e)}")
 
     async def _handle_ui_response(self, response_data: Dict[str, Any]) -> Any:
-        """Process UI element response data.
+        """
+        Process UI element response data into appropriate typed models.
+        
+        This method parses raw UI response data into the appropriate
+        strongly-typed Pydantic model based on the UI element type.
         
         Args:
-            response_data: Raw response data from the server
+            response_data: Raw response data from the server.
             
         Returns:
-            Properly typed UI element response data
+            Properly typed UI element response data as a Pydantic model,
+            or the raw data if parsing fails or the element type is unknown.
         """
         try:
             # Parse the response into the correct model
@@ -143,7 +177,33 @@ class MessageSender:
         is_generation_end: bool = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send generated text to the server."""
+        """
+        Send generated text to the client through the Framewise backend.
+        
+        This method allows sending text responses to the client, with support
+        for streaming generation. When streaming, multiple messages can be sent
+        with is_generation_end=False, followed by a final message with
+        is_generation_end=True to indicate the end of the generation.
+        
+        Args:
+            text: The text content to send.
+            is_generation_end: Boolean flag indicating whether this is the last
+                             chunk of a text generation sequence. If True, the
+                             client UI will stop displaying a loading indicator.
+            loop: Optional event loop to use for sending the message. If None,
+                 uses the current event loop.
+        
+        Example:
+            ```python
+            # For streaming text generation:
+            sender.send_generated_text("Hello, ", is_generation_end=False)
+            sender.send_generated_text("how are ", is_generation_end=False)
+            sender.send_generated_text("you today?", is_generation_end=True)
+            
+            # For non-streaming:
+            sender.send_generated_text("Hello, how are you today?", is_generation_end=True)
+            ```
+        """
         # Create the model with content
         content = GeneratedTextContent(text=text, is_generation_end=is_generation_end)
         message = GeneratedTextMessage(content=content)
@@ -160,11 +220,18 @@ class MessageSender:
                           UploadFileElement, TextInputElement, ConsentFormElement, CalendlyElement],
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a custom UI element to the server using proper Pydantic models.
-
+        """
+        Send a custom UI element to the client through the Framewise backend.
+        
+        This is a general-purpose method for sending any supported UI element type.
+        It's used internally by the specific UI element methods, but can also be
+        used directly with custom Pydantic models for advanced use cases.
+        
         Args:
-            ui_element: A strongly-typed Pydantic model for the UI element
-            loop: Event loop to use for coroutine execution (uses current loop if None)
+            ui_element: A strongly-typed Pydantic model for the UI element to send.
+                      Must be one of the supported UI element types.
+            loop: Optional event loop to use for sending the message. If None,
+                 uses the current event loop.
         """
         # Create the message with the element
         message = CustomUIElementMessage(content=ui_element)
@@ -183,7 +250,29 @@ class MessageSender:
         image_path: Optional[str] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send an MCQ question as a custom UI element."""
+        """
+        Send a multiple-choice question to the client.
+        
+        This method creates and sends an interactive multiple-choice question
+        that the user can respond to. Each question has a unique ID for tracking
+        responses, a question text, and a list of options.
+        
+        Args:
+            question_id: Unique identifier for the question, used to match responses.
+            question: The question text to display to the user.
+            options: List of option strings that the user can select from.
+            image_path: Optional URL to an image to display with the question.
+            loop: Optional event loop to use for sending the message.
+        
+        Example:
+            ```python
+            sender.send_mcq_question(
+                question_id="q1",
+                question="What's your favorite color?",
+                options=["Red", "Green", "Blue", "Yellow"]
+            )
+            ```
+        """
         # Create the model with properly typed data
         mcq_data = MCQQuestionData(
             id=question_id,
@@ -206,7 +295,33 @@ class MessageSender:
         duration: int = 8000,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a notification as a custom UI element."""
+        """
+        Send a notification message to the client.
+        
+        This method displays a temporary notification toast in the client UI,
+        useful for alerts, confirmations, or status updates.
+        
+        Args:
+            notification_id: Unique identifier for the notification.
+            text: The notification message text to display.
+            level: The notification severity level, one of:
+                  - "success" (green)
+                  - "info" (blue)
+                  - "warning" (yellow)
+                  - "error" (red)
+            duration: How long the notification should display in milliseconds.
+            loop: Optional event loop to use for sending the message.
+            
+        Example:
+            ```python
+            sender.send_notification(
+                notification_id="note1",
+                text="Your request has been processed successfully!",
+                level="success",
+                duration=5000  # 5 seconds
+            )
+            ```
+        """
         # Create the model with properly typed data
         notification_data = NotificationData(
             id=notification_id,
@@ -231,7 +346,28 @@ class MessageSender:
         placeholder: str = "Enter location",
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a places autocomplete field as a custom UI element."""
+        """
+        Send a places autocomplete input field to the client.
+        
+        This method creates and sends an interactive location input field with
+        Google Places Autocomplete functionality. It allows users to easily
+        enter and select locations from Google's database.
+        
+        Args:
+            element_id: Unique identifier for the element, used to match responses.
+            text: Instructional text to display above the input field.
+            placeholder: Placeholder text to show inside the empty input field.
+            loop: Optional event loop to use for sending the message.
+        
+        Example:
+            ```python
+            sender.send_places_autocomplete(
+                element_id="location1",
+                text="Please enter your shipping address:",
+                placeholder="Start typing your address..."
+            )
+            ```
+        """
         # Create the model with properly typed data
         places_data = PlacesAutocompleteData(
             id=element_id,
@@ -256,7 +392,31 @@ class MessageSender:
         max_size_mb: Optional[int] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a file upload element as a custom UI element."""
+        """
+        Send a file upload interface to the client.
+        
+        This method creates and sends a file upload component that allows users
+        to upload files from their device. The component can be configured to
+        restrict file types and maximum file size.
+        
+        Args:
+            element_id: Unique identifier for the element, used to match responses.
+            text: Instructional text to display above the upload button.
+            allowed_types: Optional list of MIME types or file extensions to accept.
+                         Example: ["image/jpeg", "image/png", ".pdf"]
+            max_size_mb: Optional maximum file size in megabytes.
+            loop: Optional event loop to use for sending the message.
+        
+        Example:
+            ```python
+            sender.send_upload_file(
+                element_id="resume_upload",
+                text="Please upload your resume:",
+                allowed_types=[".pdf", ".docx", "application/pdf"],
+                max_size_mb=10
+            )
+            ```
+        """
         # Create the model with properly typed data
         upload_data = UploadFileData(
             id=element_id,
@@ -282,7 +442,39 @@ class MessageSender:
         multiline: bool = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a text input element as a custom UI element."""
+        """
+        Send a text input field to the client.
+        
+        This method creates and sends an interactive text input field that allows
+        users to enter free-form text responses. It supports both single-line and
+        multiline inputs for different use cases.
+        
+        Args:
+            element_id: Unique identifier for the element, used to match responses.
+            prompt: The question or prompt text to display above the input field.
+            placeholder: Optional placeholder text to show in the empty input field.
+            multiline: Whether to create a multiline text area (True) or a single-line
+                     input field (False, default).
+            loop: Optional event loop to use for sending the message.
+        
+        Example:
+            ```python
+            # Single-line input
+            sender.send_text_input(
+                element_id="name_input",
+                prompt="What is your name?",
+                placeholder="Enter your full name"
+            )
+            
+            # Multiline input
+            sender.send_text_input(
+                element_id="feedback",
+                prompt="Please provide your feedback:",
+                placeholder="Type your comments here...",
+                multiline=True
+            )
+            ```
+        """
         # Create the model with properly typed data
         text_input_data = TextInputData(
             id=element_id,
@@ -309,7 +501,31 @@ class MessageSender:
         required: bool = True,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a consent form element as a custom UI element."""
+        """
+        Send a consent form to the client.
+        
+        This method creates and sends an interactive consent form that requires
+        user agreement before proceeding. It's useful for terms of service acceptance,
+        privacy policy acknowledgments, or other consent-based interactions.
+        
+        Args:
+            element_id: Unique identifier for the element, used to match responses.
+            text: The consent text to display to the user, can include HTML formatting.
+            checkbox_label: Text to display next to the checkbox (default: "I agree").
+            submit_label: Text for the submit button (default: "Submit").
+            required: Whether checking the box is required to submit (default: True).
+            loop: Optional event loop to use for sending the message.
+        
+        Example:
+            ```python
+            sender.send_consent_form(
+                element_id="privacy_consent",
+                text="I agree to the <a href='https://example.com/privacy'>Privacy Policy</a> and consent to the processing of my personal data.",
+                checkbox_label="I understand and agree",
+                submit_label="Continue"
+            )
+            ```
+        """
         # Create the model with properly typed data
         consent_form_data = ConsentFormData(
             id=element_id,
@@ -336,7 +552,33 @@ class MessageSender:
         subtitle: Optional[str] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send a Calendly scheduling element as a custom UI element."""
+        """
+        Send a Calendly scheduling widget to the client.
+        
+        This method creates and sends an embedded Calendly scheduling interface
+        that allows users to book appointments or meetings directly within the
+        conversation flow.
+        
+        Args:
+            element_id: Unique identifier for the element, used to match responses.
+            url: The Calendly scheduling link URL.
+            title: Title text to display above the scheduling widget (default: "Schedule a meeting").
+            subtitle: Optional subtitle or description text to display.
+            loop: Optional event loop to use for sending the message.
+        
+        Example:
+            ```python
+            sender.send_calendly(
+                element_id="consultation_booking",
+                url="https://calendly.com/yourname/30min",
+                title="Book Your Free Consultation",
+                subtitle="Select a time that works for you. The call will last approximately 30 minutes."
+            )
+            ```
+            
+        Note:
+            The Calendly URL must be from a valid Calendly account and properly formatted.
+        """
         # Create the model with properly typed data
         calendly_data = CalendlyData(
             id=element_id,
@@ -360,7 +602,26 @@ class MessageSender:
         error_code: Optional[str] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
-        """Send an error message to the server."""
+        """
+        Send an error message to the server.
+        
+        This method reports an error condition to the Framewise backend.
+        It can be used to signal problems that might require server-side
+        attention or debugging.
+        
+        Args:
+            error_message: Description of the error that occurred.
+            error_code: Optional error code or identifier to categorize the error.
+            loop: Optional event loop to use for sending the message.
+        
+        Example:
+            ```python
+            sender.send_error(
+                error_message="Failed to process user input due to invalid format",
+                error_code="INPUT_FORMAT_ERROR"
+            )
+            ```
+        """
         # Create the error message
         message = ErrorResponse(error=error_message, error_code=error_code)
 
