@@ -6,8 +6,8 @@ import websockets
 import importlib
 import multiprocessing
 from typing import Dict, Optional, Any, Callable, Union
-
 from .errors import ConnectionError, AuthenticationError
+import subprocess
 
 logger = logging.getLogger("AgentConnector")
 
@@ -51,6 +51,7 @@ class AgentConnector:
         self.active_agents = {}  # Keep track of running agent processes
         self.agent_modules = agent_modules
         self.websocket = None
+        self.command = None
         
     async def connect_and_listen(self):
         """
@@ -124,6 +125,7 @@ class AgentConnector:
             if agent_name and meeting_id:
                 logger.info(f"Starting agent {agent_name} for meeting {meeting_id}")
                 # Always create a new process, don't reuse existing ones
+                self.command_manager(meeting_id=meeting_id)
                 self.start_agent_process(agent_name, meeting_id)
             else:
                 logger.warning(f"Received message without agent_name or meeting_id: {message}")
@@ -132,6 +134,36 @@ class AgentConnector:
             logger.error(f"Failed to parse message: {message_raw}")
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}")
+    
+    def command_manager(self, meeting_id):
+        """Execute a system command with meeting_id as an argument.
+        
+        Args:
+            command: The shell command to execute
+            meeting_id: The meeting ID to pass as an argument
+            
+        Returns:
+            The return code of the command execution
+        """
+        try:
+            logger.info(f"Executing command: {self.command} with meeting_id: {meeting_id}")
+            
+            # Run the command with meeting_id as an argument
+            process = subprocess.run(f"{self.command} {meeting_id}", shell=True, check=False)
+            
+            if process.returncode == 0:
+                logger.info(f"Command executed successfully")
+            else:
+                logger.error(f"Command execution failed with return code: {process.returncode}")
+                
+            return process.returncode
+            
+        except Exception as e:
+            logger.error(f"Error executing command: {str(e)}")
+            return -1
+    
+    def register_command(self,command):
+        self.command = command
     
     def start_agent_process(self, agent_name: str, meeting_id: str) -> bool:
         """
