@@ -116,11 +116,11 @@ def on_reject(message):
     except Exception as e:
         logger.error(f"Error handling connection rejection: {str(e)}")
 
-# Main function to run the agent connector
+
 async def main():
-    # Define the agent module mapping
+    # Correct way to map the agent name to the app object
     agent_modules = {
-        "quiz": "app"
+        "quiz": app  # Reference to the App instance, not a string
     }
     api_key = "1234567"
     
@@ -131,6 +131,6 @@ if __name__ == "__main__":
     def signal_handler(sig, frame):
         logger.info("Keyboard interrupt received, shutting down...")
         asyncio.get_event_loop().stop()
-    
+
     signal.signal(signal.SIGINT, signal_handler)
     asyncio.run(main())
