@@ -171,7 +171,7 @@ class MessageSender:
             logger.error(f"Error processing UI element response: {str(e)}")
             return response_data
 
-    def send_generated_text(
+    async def send_generated_text(
         self,
         text: str,
         is_generation_end: bool = False,
@@ -212,7 +212,7 @@ class MessageSender:
         if loop:
             asyncio.run_coroutine_threadsafe(self._send_model(message), loop)
         else:
-            asyncio.create_task(self._send_model(message))
+            await self._send_model(message)
 
     def send_custom_ui_element(
         self,
