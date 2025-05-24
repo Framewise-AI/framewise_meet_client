@@ -29,6 +29,7 @@ UPLOAD_FILE_EVENT = "upload_file"
 TEXTINPUT_EVENT = "textinput"
 CONSENT_FORM_EVENT = "consent_form"
 CALENDLY_EVENT = "calendly"
+CODE_EDITOR_EVENT = "code_editor"
 
 # Mapping of event types to handler classes
 EVENT_HANDLERS = {
@@ -45,6 +46,7 @@ EVENT_HANDLERS = {
     TEXTINPUT_EVENT: CustomUIHandler,
     CONSENT_FORM_EVENT: CustomUIHandler,
     CALENDLY_EVENT: CustomUIHandler,
+    CODE_EDITOR_EVENT: CustomUIHandler,
 }
 
 __all__ = [
@@ -68,5 +70,7 @@ __all__ = [
     "TEXTINPUT_EVENT",
     "CONSENT_FORM_EVENT",
     "CALENDLY_EVENT",
+    "CODE_EDITOR_EVENT",   
     "EVENT_HANDLERS",
+     
 ]

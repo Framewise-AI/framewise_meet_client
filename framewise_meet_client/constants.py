@@ -28,6 +28,7 @@ UPLOAD_FILE_EVENT = "upload_file"
 TEXTINPUT_EVENT = "textinput"
 CONSENT_FORM_EVENT = "consent_form"
 CALENDLY_EVENT = "calendly"
+CODE_EDITOR_EVENT = "code_editor"
 
 # Notification levels
 NOTIFICATION_LEVEL_INFO = "info"

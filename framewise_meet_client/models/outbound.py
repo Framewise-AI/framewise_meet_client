@@ -391,6 +391,27 @@ class CalendlyElement(BaseModel):
     data: CalendlyData = Field(..., description="Calendly data")
 
 
+class CodeEditorData(BaseModel):
+    """Data for a code editor UI element."""
+
+    id: str = Field(..., description="Code editor identifier")
+    prompt: str = Field(..., description="Prompt for the code editor")
+    placeholder: str = Field(..., description="Placeholder text for the code editor")
+    defaultLanguage: str = Field(..., description="Default programming language")
+    allowedLanguages: List[str] = Field(..., description="List of allowed languages")
+
+class CodeEditorElement(BaseModel):
+    """
+    UI element representing a code editor to the client.
+
+    Attributes:
+        type: Literal "code_editor".
+        data: CodeEditorData model with code editor details.
+    """
+
+    type: Literal["code_editor"] = "code_editor"
+    data: CodeEditorData = Field(..., description="Code editor data")
+
 # Update the CustomUIElementMessage to include all the new element types
 class CustomUIElementMessage(BaseModel):
     """
@@ -410,6 +431,7 @@ class CustomUIElementMessage(BaseModel):
         TextInputElement,
         ConsentFormElement,
         CalendlyElement,
+        CodeEditorElement,
         CustomUIElement,
     ] = Field(..., description="Custom UI element")
 

@@ -24,6 +24,8 @@ from .models.outbound import (
     ConsentFormData,
     CalendlyElement,
     CalendlyData,
+    CodeEditorElement,
+    CodeEditorData,
     ErrorResponse,
 )
 
@@ -36,6 +38,7 @@ from .models.inbound import (
     TextInputResponseData,
     ConsentFormResponseData,
     CalendlyResponseData,
+    CodeEditorResponseData
 )
 
 from .errors import ConnectionError
@@ -163,6 +166,8 @@ class MessageSender:
                 return ConsentFormResponseData(**data)
             elif element_type == "calendly":
                 return CalendlyResponseData(**data)
+            elif element_type == "code_editor":
+                return CodeEditorResponseData(**data)
                 
             # If we don't recognize the type, return the raw data
             return data
@@ -217,7 +222,8 @@ class MessageSender:
     def send_custom_ui_element(
         self,
         ui_element: Union[MCQQuestionElement, NotificationElement, PlacesAutocompleteElement,
-                          UploadFileElement, TextInputElement, ConsentFormElement, CalendlyElement],
+                          UploadFileElement, TextInputElement, ConsentFormElement,
+                            CalendlyElement, CodeEditorElement],
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         """
@@ -595,6 +601,45 @@ class MessageSender:
         
         # Send as custom UI element
         self.send_custom_ui_element(calendly_element, loop)
+
+    def send_code_editor(
+        self,
+        element_id: str,
+        prompt: str,
+        placeholder: str = "",
+        default_language: str = "python",
+        allowed_languages: List[str] = ["python", "javascript", "java", "cpp"],
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """
+        Send a code editor to the client.
+        
+        This method creates and sends a code editor component that allows users
+        to write and execute code in various programming languages.
+        
+        Args:
+            element_id: Unique identifier for the element, used to match responses.
+            prompt: The prompt or task description for the code editor.
+            placeholder: Optional placeholder text to show in the empty editor.
+            default_language: The default programming language to use (default: "python").
+            allowed_languages: List of allowed programming languages (default: ["python", "javascript", "java", "cpp"]).
+            loop: Optional event loop to use for sending the message.
+        """
+        # Create the model with properly typed data
+        code_editor_data = CodeEditorData(
+            id=element_id,
+            prompt=prompt,
+            placeholder=placeholder,
+            defaultLanguage=default_language,
+            allowedLanguages=allowed_languages
+        )
+
+        # Create the element model
+        code_editor_element = CodeEditorElement(
+            type="code_editor", 
+            data=code_editor_data
+        )
+        self.send_custom_ui_element(code_editor_element, loop)
 
     def send_error(
         self,

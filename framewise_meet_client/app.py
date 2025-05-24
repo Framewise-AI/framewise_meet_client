@@ -59,6 +59,7 @@ from .events import (
     TEXTINPUT_EVENT,
     CONSENT_FORM_EVENT,
     CALENDLY_EVENT,
+    CODE_EDITOR_EVENT,
     register_event_handler,
 )
 from .exceptions import InvalidMessageTypeError
@@ -127,6 +128,7 @@ class App:
         "textinput": TEXTINPUT_EVENT,
         "consent_form": CONSENT_FORM_EVENT,
         "calendly": CALENDLY_EVENT,
+        "code_editor": CODE_EDITOR_EVENT,
     }
 
     _message_type_mapping = {
@@ -548,6 +550,15 @@ class App:
             Either the registered function or a decorator function
         """
         return self.on(CALENDLY_EVENT)(func) if func else self.on(CALENDLY_EVENT)
+    
+    def on_code_editor_response(self, func=None):
+        """Register a handler for code editor response events.
+        
+        Args:
+            func: Function that takes a CustomUIElementMessage with code editor data and processes it.
+                  If None, returns a decorator.
+        """
+        return self.on(CODE_EDITOR_EVENT)(func) if func else self.on(CODE_EDITOR_EVENT)
 
     def on_ui_element_response(self, element_type: str = None):
         """Register a handler for UI element responses.
@@ -643,3 +654,7 @@ class App:
     def on_calendly_response(self):
         """Register a handler specifically for Calendly scheduling responses."""
         return self.on_ui_element_response("calendly")
+
+    def on_code_editor_response(self):
+        """Register a handler specifically for code editor responses."""
+        return self.on_ui_element_response("code_editor")

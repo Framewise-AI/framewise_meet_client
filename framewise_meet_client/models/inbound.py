@@ -193,34 +193,11 @@ class ExitEvent(BaseModel):
 class MCQQuestionResponseData(BaseModel):
     """
     Data model for multiple-choice question responses.
-    
-    This model represents the user's selection in response to a multiple-choice
-    question, including both the selected option text and its index in the options list.
-    
-    Attributes:
-        id: Unique identifier for the MCQ question.
-        question: Optional text of the question (for reference).
-        options: Optional list of all available options (for reference).
-        selectedOption: The text content of the selected option.
-        selectedIndex: The zero-based index of the selected option in the options list.
-        response: Legacy field for the selected response text.
-    
-    Example:
-        ```python
-        {
-            "id": "question-123",
-            "question": "What is your favorite color?",
-            "options": ["Red", "Green", "Blue", "Yellow"],
-            "selectedOption": "Blue",
-            "selectedIndex": 2
-        }
-        ```
     """
     
     id: str = Field(..., description="ID of the MCQ question")
     question: Optional[str] = Field(None, description="The question text")
     options: Optional[List[str]] = Field(None, description="List of options")
-    # Add these fields to match the actual response format
     selectedOption: Optional[str] = Field(None, description="The selected option text")
     selectedIndex: Optional[int] = Field(None, description="The index of the selected option")
     response: Optional[str] = Field(None, description="The selected response (legacy)")
@@ -230,27 +207,6 @@ class PlacesAutocompleteResponseData(BaseModel):
     """
     Data model for Google Places Autocomplete responses.
     
-    This model represents the location selected by a user from the Places
-    Autocomplete component, including the formatted address string and
-    geographical coordinates.
-    
-    Attributes:
-        id: Unique identifier for the Places Autocomplete element.
-        text: Prompt text shown with the component.
-        address: The full formatted address string selected by the user.
-        placeId: Google Places API place ID for the selected location.
-        coordinates: Dictionary with "lat" and "lng" keys for the location coordinates.
-    
-    Example:
-        ```python
-        {
-            "id": "location-123",
-            "text": "Enter your shipping address:",
-            "address": "1600 Amphitheatre Parkway, Mountain View, CA 94043, USA",
-            "placeId": "ChIJj61dQgK6j4AR4GeTYWZsKWw",
-            "coordinates": {"lat": 37.422, "lng": -122.084}
-        }
-        ```
     """
     
     id: str = Field(..., description="ID of the places autocomplete element")
@@ -263,33 +219,7 @@ class PlacesAutocompleteResponseData(BaseModel):
 class UploadFileResponseData(BaseModel):
     """
     Data model for file upload responses.
-    
-    This model represents a file uploaded by the user, including metadata
-    about the file and its content encoded as a base64 string.
-    
-    Attributes:
-        id: Unique identifier for the file upload element.
-        text: Prompt text shown with the component.
-        fileName: Name of the uploaded file including extension.
-        fileType: MIME type of the uploaded file (e.g., "application/pdf").
-        fileSize: Size of the file in bytes.
-        fileData: Base64-encoded content of the uploaded file.
-    
-    Example:
-        ```python
-        {
-            "id": "resume-upload",
-            "text": "Please upload your resume:",
-            "fileName": "resume.pdf",
-            "fileType": "application/pdf",
-            "fileSize": 1048576,
-            "fileData": "JVBERi0xLjMK..."  # Base64-encoded PDF data
-        }
-        ```
-        
-    Note:
-        The fileData field may contain large amounts of base64-encoded data,
-        which should be decoded before processing.
+
     """
     
     id: str = Field(..., description="ID of the upload element")
@@ -299,6 +229,17 @@ class UploadFileResponseData(BaseModel):
     fileSize: int = Field(..., description="Size of the file in bytes")
     fileData: str = Field(..., description="Base64-encoded file data")
 
+
+class CodeEditorResponseData(BaseModel):
+    """
+    Data model for code editor responses.
+
+    """
+    
+    id: str = Field(..., description="ID of the code editor element")
+    prompt: str = Field(..., description="Prompt for the code editor")
+    code: str = Field(..., description="Code content entered by the user")
+    language: str = Field(..., description="Programming language of the code")
 
 class TextInputResponseData(BaseModel):
     """Data for a text input response."""
@@ -334,6 +275,7 @@ class CustomUIContent(BaseModel):
         TextInputResponseData,
         ConsentFormResponseData,
         CalendlyResponseData,
+        CodeEditorResponseData,
         Dict[str, Any]  # Fallback for unknown types
     ] = Field(..., description="Data for the UI element")
 
